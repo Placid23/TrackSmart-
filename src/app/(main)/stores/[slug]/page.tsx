@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { vendors } from '@/lib/data';
 import { useTransactions } from '@/lib/hooks/use-transactions';
 import { useCoupon } from '@/lib/hooks/use-coupon';
@@ -24,18 +23,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import type { Vendor, VendorItem } from '@/lib/types';
+import { Loader2 } from 'lucide-react';
 
-export default function VendorPage({ params }: { params: { slug: string } }) {
+export default function VendorPage() {
+  const params = useParams<{ slug: string }>();
   const { addTransaction } = useTransactions();
   const { toast } = useToast();
   const { coupon, useCouponValue } = useCoupon();
   const [useCouponSwitch, setUseCouponSwitch] = useState(false);
   const [selectedItem, setSelectedItem] = useState<VendorItem | null>(null);
 
-  const vendor: Vendor | undefined = useMemo(() =>
-    vendors.find(v => v.name.toLowerCase().replace(/\s+/g, '-') === params.slug),
-    [params.slug]
-  );
+  const vendor: Vendor | undefined = useMemo(() => {
+    if (!params.slug) return undefined;
+    return vendors.find(v => v.name.toLowerCase().replace(/\s+/g, '-') === params.slug);
+  }, [params.slug]);
+
+  if (!params.slug) {
+    return (
+      <div className="flex h-full items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!vendor) {
     notFound();
