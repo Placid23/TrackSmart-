@@ -65,13 +65,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updatedItems = [...prevItems, newItem];
       }
       updateLocalStorage(updatedItems);
-      toast({
-        title: 'Added to Cart',
-        description: `${item.name} has been added to your cart.`,
-      });
-      setCartOpen(true);
       return updatedItems;
     });
+
+    toast({
+      title: 'Added to Cart',
+      description: `${item.name} has been added to your cart.`,
+    });
+    setCartOpen(true);
   }, [toast]);
 
   const removeItem = useCallback((itemId: string) => {
