@@ -23,6 +23,7 @@ export interface Transaction {
 export interface VendorItem {
   name: string;
   price: number;
+  mealTime?: ('Breakfast' | 'Lunch' | 'Dinner')[];
 }
 
 export type VendorCategoryName =

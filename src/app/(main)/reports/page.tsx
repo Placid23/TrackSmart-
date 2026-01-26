@@ -20,7 +20,7 @@ export default function ReportsPage() {
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold font-headline tracking-tight">Transaction Reports</h1>
+        <h1 className="text-3xl font-bold font-headline tracking-tight">Order History</h1>
         <p className="text-muted-foreground">A detailed log of all your expenses.</p>
       </div>
 

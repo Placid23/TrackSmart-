@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Store, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Store, History, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/stores', icon: Store, label: 'Stores' },
-  { href: '/reports', icon: BarChart3, label: 'Reports' },
+  { href: '/reports', icon: History, label: 'History' },
+  { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export function MobileBottomNav() {

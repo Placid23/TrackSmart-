@@ -1,30 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { User, Wallet, Bell } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CouponWallet } from '@/components/coupon-wallet';
-import { useUserProfile } from '@/lib/hooks/use-user-profile';
-import { Skeleton } from '../ui/skeleton';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useRouter } from 'next/navigation';
 
 export function AppHeader() {
-  const { profile, isLoading, clearProfile } = useUserProfile();
-  const router = useRouter();
-
-  const handleLogout = () => {
-    clearProfile();
-    router.push('/profile');
-  };
-
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-card">
       <div className="container mx-auto flex h-16 items-center space-x-4 px-4 sm:justify-between sm:space-x-0">
@@ -49,33 +30,11 @@ export function AppHeader() {
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-2">
-          {isLoading ? (
-            <Skeleton className="h-8 w-24" />
-          ) : (
-            <>
-              <CouponWallet />
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5" />
-                <span className="sr-only">Notifications</span>
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
-                    <span className="sr-only">User Profile</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>{profile?.fullName || 'User'}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">Edit Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          )}
+          <CouponWallet />
+          <Button variant="ghost" size="icon">
+            <Bell className="h-5 w-5" />
+            <span className="sr-only">Notifications</span>
+          </Button>
         </div>
       </div>
     </header>
