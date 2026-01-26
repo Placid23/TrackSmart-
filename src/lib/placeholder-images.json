@@ -29,6 +29,42 @@
       "description": "Default user profile avatar",
       "imageUrl": "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjkyODc2NjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
+    },
+    {
+      "id": "food-jollof-rice",
+      "description": "Jollof Rice & Chicken",
+      "imageUrl": "https://images.unsplash.com/photo-1664992960082-0ea299a9c53e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxqb2xsb2YlMjByaWNlfGVufDB8fHx8MTc2OTM5MTQ2Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "jollof rice"
+    },
+    {
+      "id": "food-fried-rice",
+      "description": "Fried Rice & Beef",
+      "imageUrl": "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmcmllZCUyMHJpY2V8ZW58MHx8fHwxNzY5MzM3OTkxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fried rice"
+    },
+    {
+      "id": "food-eba-egusi",
+      "description": "Eba & Egusi Soup",
+      "imageUrl": "https://images.unsplash.com/photo-1610565826403-0a8cecc8ce5e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxlZ3VzaSUyMHNvdXB8ZW58MHx8fHwxNzY5NDMyMTI2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "egusi soup"
+    },
+    {
+      "id": "food-yam-egg",
+      "description": "Yam & Egg Sauce",
+      "imageUrl": "https://images.unsplash.com/photo-1755603784587-58f19674440f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx5YW0lMjBlZ2d8ZW58MHx8fHwxNzY5NDE3ODkyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "yam egg"
+    },
+    {
+      "id": "food-shawarma",
+      "description": "Shawarma",
+      "imageUrl": "https://images.unsplash.com/photo-1621628017636-d1c2009fc27c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzaGF3YXJtYSUyMHdyYXB8ZW58MHx8fHwxNzY5NDAwMDM2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "shawarma wrap"
+    },
+    {
+      "id": "food-pizza",
+      "description": "Pizza Slice",
+      "imageUrl": "https://images.unsplash.com/photo-1520201163981-8cc95007dd2a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwaXp6YSUyMHNsaWNlfGVufDB8fHx8MTc2OTQzMjEyNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pizza slice"
     }
   ]
 }

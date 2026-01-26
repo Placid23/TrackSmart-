@@ -1,88 +1,50 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { notFound, useParams } from 'next/navigation';
+import { useState, useMemo, Suspense } from 'react';
+import { useParams, notFound } from 'next/navigation';
+import Image from 'next/image';
 import { vendors } from '@/lib/data';
-import { useTransactions } from '@/lib/hooks/use-transactions';
-import { useCoupon } from '@/lib/hooks/use-coupon';
-import { useToast } from '@/hooks/use-toast';
+import { useCart } from '@/lib/hooks/use-cart';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { MealCard } from '@/components/stores/meal-card';
 import type { Vendor, VendorItem } from '@/lib/types';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Leaf, Info, ShoppingCart } from 'lucide-react';
 
-export default function VendorPage() {
+function VendorPageContent() {
   const params = useParams<{ slug: string }>();
-  const { addTransaction } = useTransactions();
-  const { toast } = useToast();
-  const { coupon, useCouponValue } = useCoupon();
-  const [useCouponSwitch, setUseCouponSwitch] = useState(false);
+  const { addItem } = useCart();
   const [selectedItem, setSelectedItem] = useState<VendorItem | null>(null);
 
   const vendor: Vendor | undefined = useMemo(() => {
     if (!params.slug) return undefined;
-    return vendors.find(v => v.name.toLowerCase().replace(/\s+/g, '-') === params.slug);
+    const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
+    return vendors.find(v => v.name.toLowerCase().replace(/\s+/g, '-') === slug);
   }, [params.slug]);
 
-  if (!params.slug) {
-    return (
-      <div className="flex h-full items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   if (!vendor) {
     notFound();
   }
 
-  const handlePurchase = () => {
-    if (!selectedItem) return;
-
-    const isCafeteria = vendor.category === 'School Cafeteria';
-    const canUseCoupon = isCafeteria && coupon?.isValid;
-    const applyCoupon = canUseCoupon && useCouponSwitch;
-    
-    let finalAmount = selectedItem.price;
-    let couponAmount = 0;
-
-    if (applyCoupon && coupon) {
-      const remainingCouponValue = useCouponValue(selectedItem.price);
-      couponAmount = selectedItem.price - remainingCouponValue.amountLeft;
-      finalAmount = remainingCouponValue.amountLeft;
+  const handleOrderClick = (item: VendorItem) => {
+    setSelectedItem(item);
+  };
+  
+  const handleAddToCart = () => {
+    if (selectedItem) {
+      addItem(selectedItem, vendor.name);
+      setSelectedItem(null);
     }
-
-    addTransaction({
-      amount: finalAmount,
-      vendor: vendor.name,
-      vendorCategory: vendor.category,
-      item: selectedItem.name,
-      couponUsed: applyCoupon,
-      couponAmount,
-      cashUsed: Math.random() > 0.5,
-    });
-
-    toast({
-      title: 'Purchase Successful',
-      description: `You bought ${selectedItem.name}. You paid ₦${finalAmount.toLocaleString()}${applyCoupon ? ` (saved ₦${couponAmount.toLocaleString()})` : ''}.`,
-    });
-
-    setUseCouponSwitch(false);
-    setSelectedItem(null);
   };
 
   const mealTimeCategories = ['All', 'Breakfast', 'Lunch', 'Dinner'];
@@ -101,73 +63,86 @@ export default function VendorPage() {
         <p className="text-muted-foreground">Browse the menu and make a purchase.</p>
       </div>
 
-      <AlertDialog>
+      <div>
         {hasMealTimeItems ? (
-          <Tabs defaultValue="All">
-            <TabsList>
+          <Tabs defaultValue="All" className="w-full">
+            <TabsList className="grid w-full grid-cols-4 md:w-auto md:inline-flex">
               {mealTimeCategories.map(cat => (
                 <TabsTrigger key={cat} value={cat}>{cat}</TabsTrigger>
               ))}
             </TabsList>
             {mealTimeCategories.map(cat => (
               <TabsContent key={cat} value={cat}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
                   {filteredItems(cat).map(item => (
-                    <AlertDialogTrigger asChild key={item.name} onClick={() => setSelectedItem(item)}>
-                      <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                          <CardTitle>{item.name}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="font-semibold text-lg">₦{item.price.toLocaleString()}</p>
-                          <Button variant="outline" className="w-full mt-4">Order Now</Button>
-                        </CardContent>
-                      </Card>
-                    </AlertDialogTrigger>
+                    <MealCard key={item.name} item={item} onOrderClick={() => handleOrderClick(item)} />
                   ))}
                 </div>
               </TabsContent>
             ))}
           </Tabs>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
             {vendor.items.map(item => (
-              <AlertDialogTrigger asChild key={item.name} onClick={() => setSelectedItem(item)}>
-                 <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle>{item.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="font-semibold text-lg">₦{item.price.toLocaleString()}</p>
-                    <Button variant="outline" className="w-full mt-4">Order Now</Button>
-                  </CardContent>
-                </Card>
-              </AlertDialogTrigger>
+               <MealCard key={item.name} item={item} onOrderClick={() => handleOrderClick(item)} />
             ))}
           </div>
         )}
+      </div>
 
-        {selectedItem && (
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Purchase</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to buy {selectedItem.name} for ₦{selectedItem.price.toLocaleString()}?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            {vendor.category === 'School Cafeteria' && coupon?.isValid && coupon.value > 0 && (
-              <div className="flex items-center space-x-2 my-4">
-                <Switch id="use-coupon" onCheckedChange={setUseCouponSwitch} checked={useCouponSwitch}/>
-                <Label htmlFor="use-coupon">Use Daily Coupon (₦{coupon.value.toLocaleString()} left)?</Label>
+      {selectedItem && (
+        <Dialog open={!!selectedItem} onOpenChange={(isOpen) => !isOpen && setSelectedItem(null)}>
+          <DialogContent className="max-w-3xl p-0">
+            <DialogHeader>
+              <div className="relative h-64 w-full">
+                <Image src={selectedItem.imageUrl} alt={selectedItem.name} layout="fill" objectFit="cover" />
               </div>
-            )}
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setSelectedItem(null)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handlePurchase}>Purchase</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        )}
-      </AlertDialog>
+              <div className="p-6">
+                <DialogTitle className="text-3xl font-headline">{selectedItem.name}</DialogTitle>
+                <DialogDescription className="mt-2 text-lg font-semibold text-primary">
+                  ₦{selectedItem.price.toLocaleString()}
+                </DialogDescription>
+              </div>
+            </DialogHeader>
+            <div className="px-6 pb-6 space-y-6">
+              <p className="text-muted-foreground">{selectedItem.description}</p>
+              
+              {selectedItem.ingredients && selectedItem.ingredients.length > 0 && (
+                <div>
+                  <h4 className="font-semibold flex items-center gap-2"><Leaf className="h-4 w-4"/>Ingredients</h4>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedItem.ingredients.map(ing => <Badge key={ing} variant="secondary">{ing}</Badge>)}
+                  </div>
+                </div>
+              )}
+
+              {selectedItem.allergens && selectedItem.allergens.length > 0 && (
+                <div>
+                  <h4 className="font-semibold flex items-center gap-2"><Info className="h-4 w-4"/>Allergens</h4>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedItem.allergens.map(alg => <Badge key={alg} variant="destructive">{alg}</Badge>)}
+                  </div>
+                </div>
+              )}
+
+            </div>
+            <DialogFooter className="p-6 pt-0 bg-background rounded-b-lg">
+              <Button size="lg" className="w-full" onClick={handleAddToCart}>
+                <ShoppingCart className="mr-2 h-5 w-5" />
+                Add to Cart
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
+}
+
+export default function VendorPage() {
+  return (
+    <Suspense fallback={<div className="flex h-full items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+      <VendorPageContent />
+    </Suspense>
+  )
 }

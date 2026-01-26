@@ -24,6 +24,11 @@ export interface VendorItem {
   name: string;
   price: number;
   mealTime?: ('Breakfast' | 'Lunch' | 'Dinner')[];
+  description: string;
+  ingredients: string[];
+  allergens: string[];
+  imageUrl: string;
+  imageHint: string;
 }
 
 export type VendorCategoryName =
@@ -43,4 +48,13 @@ export interface Coupon {
   value: number;
   isValid: boolean;
   date: string; // YYYY-MM-DD
+}
+
+export interface CartItem {
+  id: string; // item name
+  name: string;
+  price: number;
+  quantity: number;
+  imageUrl: string;
+  vendorName: string;
 }
