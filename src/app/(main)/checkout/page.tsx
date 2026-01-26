@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useTransactions } from '@/lib/hooks/use-transactions';
 import { useCoupon } from '@/lib/hooks/use-coupon';
@@ -13,20 +14,27 @@ import { useToast } from '@/hooks/use-toast';
 import { vendors } from '@/lib/data';
 import type { CartItem } from '@/lib/types';
 import Image from 'next/image';
-import { CreditCard, Lock } from 'lucide-react';
+import { CreditCard, Lock, Loader2 } from 'lucide-react';
 
 export default function CheckoutPage() {
-  const { cartItems, cartTotal, clearCart } = useCart();
+  const { cartItems, cartTotal, clearCart, isInitialized } = useCart();
   const { addTransaction } = useTransactions();
   const { useCouponValue } = useCoupon();
   const router = useRouter();
   const { toast } = useToast();
 
-  if (cartItems.length === 0) {
-    if (typeof window !== 'undefined') {
-        router.replace('/stores');
+  useEffect(() => {
+    if (isInitialized && cartItems.length === 0) {
+      router.replace('/stores');
     }
-    return null;
+  }, [isInitialized, cartItems, router]);
+
+  if (!isInitialized || cartItems.length === 0) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   const handleCheckout = () => {

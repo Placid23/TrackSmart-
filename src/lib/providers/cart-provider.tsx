@@ -13,6 +13,7 @@ interface CartContextType {
   cartTotal: number;
   isCartOpen: boolean;
   setCartOpen: (isOpen: boolean) => void;
+  isInitialized: boolean;
 }
 
 export const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -22,6 +23,7 @@ const CART_STORAGE_KEY = 'tracksmart_cart';
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setCartOpen] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -32,6 +34,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Failed to load cart from local storage', error);
+    } finally {
+      setIsInitialized(true);
     }
   }, []);
 
@@ -101,7 +105,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const cartTotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   
   return (
-    <CartContext.Provider value={{ cartItems, addItem, removeItem, clearCart, totalItems, cartTotal, isCartOpen, setCartOpen }}>
+    <CartContext.Provider value={{ cartItems, addItem, removeItem, clearCart, totalItems, cartTotal, isCartOpen, setCartOpen, isInitialized }}>
       {children}
     </CartContext.Provider>
   );
