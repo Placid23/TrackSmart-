@@ -6,6 +6,7 @@ import { SpendingChart } from '@/components/dashboard/spending-chart';
 import { AIInsights } from '@/components/dashboard/ai-insights';
 import { Loader2 } from 'lucide-react';
 import { useTransactions } from '@/lib/hooks/use-transactions';
+import { CategorySpendingChart } from '@/components/dashboard/category-spending-chart';
 
 export default function DashboardPage() {
   const { profile, isLoading: isProfileLoading } = useUserProfile();
@@ -36,7 +37,10 @@ export default function DashboardPage() {
         <div className="lg:col-span-2">
           <SpendingChart transactions={transactions} />
         </div>
-        <div>
+        <div className="lg:col-span-1">
+          <CategorySpendingChart transactions={transactions} />
+        </div>
+        <div className="lg:col-span-3">
           <AIInsights transactions={transactions} />
         </div>
       </div>

@@ -38,6 +38,7 @@ export interface Vendor {
 }
 
 export interface Coupon {
+  initialValue: number;
   value: number;
   isValid: boolean;
   date: string; // YYYY-MM-DD

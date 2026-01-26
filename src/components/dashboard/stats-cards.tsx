@@ -1,3 +1,5 @@
+'use client';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Transaction } from '@/lib/types';
 import { TrendingUp, TrendingDown, Ticket, Banknote } from 'lucide-react';
@@ -9,19 +11,42 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ transactions, monthlyAllowance }: StatsCardsProps) {
-  const { totalSpent, budgetRemaining, couponSavings } = useMemo(() => {
+  const { totalSpent, budgetRemaining, couponSavings, spendingTrend } = useMemo(() => {
     const today = new Date();
-    const currentMonthTransactions = transactions.filter(
-      t => new Date(t.date).getMonth() === today.getMonth() && new Date(t.date).getFullYear() === today.getFullYear()
-    );
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    const lastMonthDate = new Date(today);
+    lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
+    const lastMonth = lastMonthDate.getMonth();
+    const lastMonthYear = lastMonthDate.getFullYear();
+
+    const currentMonthTransactions = transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear;
+    });
+
+    const lastMonthTransactions = transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return transactionDate.getMonth() === lastMonth && transactionDate.getFullYear() === lastMonthYear;
+    });
 
     const totalSpent = currentMonthTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalSpentLastMonth = lastMonthTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+    let spendingTrend = 0;
+    if (totalSpentLastMonth > 0) {
+      spendingTrend = ((totalSpent - totalSpentLastMonth) / totalSpentLastMonth) * 100;
+    } else if (totalSpent > 0) {
+      spendingTrend = 100;
+    }
+
     const budgetRemaining = monthlyAllowance - totalSpent;
     const couponSavings = currentMonthTransactions
       .filter(t => t.couponUsed)
       .reduce((sum, t) => sum + (t.couponAmount || 0), 0);
       
-    return { totalSpent, budgetRemaining, couponSavings };
+    return { totalSpent, budgetRemaining, couponSavings, spendingTrend };
   }, [transactions, monthlyAllowance]);
 
   const budgetUtilization = monthlyAllowance > 0 ? (totalSpent / monthlyAllowance) * 100 : 0;
@@ -30,13 +55,14 @@ export function StatsCards({ transactions, monthlyAllowance }: StatsCardsProps) 
     {
       title: 'Total Spent (This Month)',
       value: `₦${totalSpent.toLocaleString()}`,
-      icon: TrendingDown,
-      color: 'text-red-500',
+      icon: spendingTrend >= 0 ? TrendingDown : TrendingUp,
+      color: spendingTrend >= 0 ? 'text-red-500' : 'text-green-500',
+      trend: spendingTrend,
     },
     {
       title: 'Budget Remaining',
       value: `₦${budgetRemaining.toLocaleString()}`,
-      icon: TrendingUp,
+      icon: budgetRemaining >= 0 ? TrendingUp : TrendingDown,
       color: budgetRemaining >= 0 ? 'text-green-500' : 'text-red-500',
     },
     {
@@ -63,6 +89,11 @@ export function StatsCards({ transactions, monthlyAllowance }: StatsCardsProps) 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stat.value}</div>
+            {stat.trend !== undefined && (
+              <p className="text-xs text-muted-foreground flex items-center">
+                {stat.trend.toFixed(1)}% {stat.trend >= 0 ? 'more' : 'less'} than last month
+              </p>
+            )}
           </CardContent>
         </Card>
       ))}

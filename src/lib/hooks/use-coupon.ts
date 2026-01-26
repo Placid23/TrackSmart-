@@ -6,7 +6,7 @@ import { useUserProfile } from './use-user-profile';
 
 const COUPON_KEY = 'tracksmart_coupon';
 
-const getCouponValue = (mealPlan: 'two-meal' | 'three-meal'): number => {
+const getInitialCouponValue = (mealPlan: 'two-meal' | 'three-meal'): number => {
   return mealPlan === 'two-meal' ? 4000 : 6000;
 };
 
@@ -30,7 +30,8 @@ export function useCoupon() {
 
       if (!currentCoupon || currentCoupon.date !== today) {
         currentCoupon = {
-          value: getCouponValue(profile.mealPlan),
+          value: getInitialCouponValue(profile.mealPlan),
+          initialValue: getInitialCouponValue(profile.mealPlan),
           isValid: true,
           date: today,
         };
@@ -44,19 +45,29 @@ export function useCoupon() {
     }
   }, [profile]);
 
-  const useCoupon = useCallback(() => {
+  const useCouponValue = useCallback((purchaseAmount: number) => {
+    let amountLeft = purchaseAmount;
     try {
       setCoupon(prevCoupon => {
-        if (!prevCoupon || !prevCoupon.isValid) return prevCoupon;
+        if (!prevCoupon || !prevCoupon.isValid || prevCoupon.value <= 0) return prevCoupon;
 
-        const updatedCoupon = { ...prevCoupon, isValid: false };
+        const couponDeduction = Math.min(purchaseAmount, prevCoupon.value);
+        amountLeft = purchaseAmount - couponDeduction;
+        
+        const updatedCoupon: Coupon = { 
+          ...prevCoupon,
+          value: prevCoupon.value - couponDeduction,
+          isValid: (prevCoupon.value - couponDeduction) > 0,
+        };
+
         window.localStorage.setItem(COUPON_KEY, JSON.stringify(updatedCoupon));
         return updatedCoupon;
       });
     } catch (error) {
       console.error('Failed to use coupon', error);
     }
+    return { amountLeft };
   }, []);
 
-  return { coupon, isLoading, useCouponValue: useCoupon };
+  return { coupon, isLoading, useCouponValue };
 }

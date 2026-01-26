@@ -52,6 +52,7 @@ export function VendorList({ vendors }: VendorListProps) {
   const { toast } = useToast();
   const { coupon, useCouponValue } = useCoupon();
   const [useCouponSwitch, setUseCouponSwitch] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const handlePurchase = (vendor: Vendor, item: VendorItem) => {
     const isCafeteria = vendor.category === 'School Cafeteria';
@@ -62,13 +63,13 @@ export function VendorList({ vendors }: VendorListProps) {
     let couponAmount = 0;
 
     if (applyCoupon && coupon) {
-      couponAmount = Math.min(item.price, coupon.value);
-      finalAmount -= couponAmount;
-      useCouponValue();
+      const remainingCouponValue = useCouponValue(item.price);
+      couponAmount = item.price - remainingCouponValue.amountLeft;
+      finalAmount = remainingCouponValue.amountLeft;
     }
 
     addTransaction({
-      amount: item.price,
+      amount: finalAmount,
       vendor: vendor.name,
       vendorCategory: vendor.category,
       item: item.name,
@@ -79,15 +80,23 @@ export function VendorList({ vendors }: VendorListProps) {
 
     toast({
       title: 'Purchase Successful',
-      description: `You bought ${item.name} for ₦${item.price.toLocaleString()}.`,
+      description: `You bought ${item.name}. You paid ₦${finalAmount.toLocaleString()}${applyCoupon ? ` (saved ₦${couponAmount.toLocaleString()})` : ''}.`,
     });
+
     setUseCouponSwitch(false);
   };
+  
+  const handleDialogChange = (open: boolean) => {
+    setOpenDialog(open);
+    if (!open) {
+      setUseCouponSwitch(false);
+    }
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {vendors.map(vendor => (
-        <Dialog key={vendor.name}>
+        <Dialog key={vendor.name} onOpenChange={handleDialogChange}>
           <Card className="overflow-hidden hover:shadow-lg transition-shadow">
             <CardHeader className="p-0">
               <div className="relative h-40 w-full">
@@ -131,10 +140,10 @@ export function VendorList({ vendors }: VendorListProps) {
                         Are you sure you want to buy {item.name} for ₦{item.price.toLocaleString()}?
                       </AlertDialogDescription>
                     </AlertDialogHeader>
-                    {vendor.category === 'School Cafeteria' && coupon?.isValid && (
+                    {vendor.category === 'School Cafeteria' && coupon?.isValid && coupon.value > 0 && (
                        <div className="flex items-center space-x-2 my-4">
                         <Switch id="use-coupon" onCheckedChange={setUseCouponSwitch} checked={useCouponSwitch}/>
-                        <Label htmlFor="use-coupon">Use Daily Coupon (₦{coupon.value.toLocaleString()})?</Label>
+                        <Label htmlFor="use-coupon">Use Daily Coupon (₦{coupon.value.toLocaleString()} left)?</Label>
                       </div>
                     )}
                     <AlertDialogFooter>
