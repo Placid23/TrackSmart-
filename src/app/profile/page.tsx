@@ -72,7 +72,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-lg">
+      <Card className="w-full max-w-lg animate-fade-in-up">
         <CardHeader>
           <CardTitle className="font-headline text-2xl text-primary">
             Welcome to TrackSmart+

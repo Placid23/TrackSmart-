@@ -8,7 +8,7 @@ export default function StoresPage() {
   ) as VendorCategoryName[];
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-fade-in-up">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold font-headline tracking-tight">Vendor Marketplace</h1>
         <p className="text-muted-foreground">
@@ -17,8 +17,8 @@ export default function StoresPage() {
       </div>
 
       <div className="space-y-8">
-        {vendorCategories.map(category => (
-          <div key={category}>
+        {vendorCategories.map((category, index) => (
+          <div key={category} className="animate-fade-in-up" style={{ animationDelay: `${index * 150}ms`, animationFillMode: 'backwards' }}>
             <h2 className="text-2xl font-semibold font-headline mb-4">{category}</h2>
             <VendorList vendors={vendors.filter(v => v.category === category)} />
           </div>

@@ -21,7 +21,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-fade-in-up">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold font-headline tracking-tight">
           Welcome back, {profile?.fullName.split(' ')[0]}!
@@ -34,13 +34,13 @@ export default function DashboardPage() {
       <StatsCards transactions={transactions} monthlyAllowance={profile?.monthlyAllowance || 0} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 animate-fade-in-up" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}>
           <SpendingChart transactions={transactions} />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 animate-fade-in-up" style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}>
           <CategorySpendingChart transactions={transactions} />
         </div>
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 animate-fade-in-up" style={{ animationDelay: '400ms', animationFillMode: 'backwards' }}>
           <AIInsights transactions={transactions} />
         </div>
       </div>

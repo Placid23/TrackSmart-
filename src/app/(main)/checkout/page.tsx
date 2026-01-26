@@ -88,7 +88,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8 animate-fade-in-up">
        <div className="space-y-2 mb-8">
         <h1 className="text-3xl font-bold font-headline tracking-tight">Checkout</h1>
         <p className="text-muted-foreground">
@@ -97,7 +97,7 @@ export default function CheckoutPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 animate-fade-in-up" style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}>
             <Card>
                 <CardHeader>
                     <CardTitle>Payment Details</CardTitle>
@@ -135,7 +135,7 @@ export default function CheckoutPage() {
             </Card>
         </div>
 
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 animate-fade-in-up" style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}>
           <Card className="sticky top-24">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>

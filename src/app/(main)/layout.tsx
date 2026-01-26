@@ -12,7 +12,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <AppHeader />
         <div className="flex flex-1">
           <DesktopSidebar />
-          <main className="flex-1 pb-16 md:pb-0">{children}</main>
+          <main className="flex-1 pb-16 md:pb-0 animate-fade-in">{children}</main>
         </div>
         <CartSheet />
         <FloatingCartButton />

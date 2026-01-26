@@ -81,8 +81,8 @@ export function StatsCards({ transactions, monthlyAllowance }: StatsCardsProps) 
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {stats.map(stat => (
-        <Card key={stat.title}>
+      {stats.map((stat, index) => (
+        <Card key={stat.title} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'backwards' }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
             <stat.icon className={`h-5 w-5 ${stat.color}`} />

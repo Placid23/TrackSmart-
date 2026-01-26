@@ -57,7 +57,7 @@ function VendorPageContent() {
   const hasMealTimeItems = vendor.items.some(item => item.mealTime);
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-fade-in-up">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold font-headline tracking-tight">{vendor.name}</h1>
         <p className="text-muted-foreground">Browse the menu and make a purchase.</p>
@@ -72,10 +72,12 @@ function VendorPageContent() {
               ))}
             </TabsList>
             {mealTimeCategories.map(cat => (
-              <TabsContent key={cat} value={cat}>
+              <TabsContent key={cat} value={cat} className="animate-fade-in">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
-                  {filteredItems(cat).map(item => (
-                    <MealCard key={item.name} item={item} onOrderClick={() => handleOrderClick(item)} />
+                  {filteredItems(cat).map((item, index) => (
+                    <div key={item.name} className="animate-fade-in-up" style={{ animationDelay: `${index * 75}ms`, animationFillMode: 'backwards' }}>
+                      <MealCard item={item} onOrderClick={() => handleOrderClick(item)} />
+                    </div>
                   ))}
                 </div>
               </TabsContent>
@@ -83,8 +85,10 @@ function VendorPageContent() {
           </Tabs>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
-            {vendor.items.map(item => (
-               <MealCard key={item.name} item={item} onOrderClick={() => handleOrderClick(item)} />
+            {vendor.items.map((item, index) => (
+               <div key={item.name} className="animate-fade-in-up" style={{ animationDelay: `${index * 75}ms`, animationFillMode: 'backwards' }}>
+                 <MealCard item={item} onOrderClick={() => handleOrderClick(item)} />
+               </div>
             ))}
           </div>
         )}

@@ -53,14 +53,14 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8 text-foreground">
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8 text-foreground animate-fade-in-up">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold font-headline tracking-tight">Settings</h1>
       </div>
 
       <div className="grid gap-8 max-w-4xl mx-auto">
         {/* Notifications */}
-        <Card>
+        <Card className="animate-fade-in-up" style={{ animationFillMode: 'backwards', animationDelay: '100ms' }}>
           <CardHeader>
             <CardTitle>Notifications</CardTitle>
           </CardHeader>
@@ -91,7 +91,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* Appearance */}
-        <Card>
+        <Card className="animate-fade-in-up" style={{ animationFillMode: 'backwards', animationDelay: '200ms' }}>
           <CardHeader>
             <CardTitle>Appearance</CardTitle>
             <CardDescription>Customize the look and feel of the app.</CardDescription>
@@ -112,7 +112,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* Payment Settings */}
-        <Card>
+        <Card className="animate-fade-in-up" style={{ animationFillMode: 'backwards', animationDelay: '300ms' }}>
           <CardHeader>
             <CardTitle>Payment Settings</CardTitle>
             <CardDescription>Manage your payment methods and subscription.</CardDescription>
@@ -127,7 +127,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* Account Management */}
-        <Card>
+        <Card className="animate-fade-in-up" style={{ animationFillMode: 'backwards', animationDelay: '400ms' }}>
           <CardHeader>
             <CardTitle>Account Management</CardTitle>
             <CardDescription>Manage your account data and access.</CardDescription>

@@ -18,7 +18,7 @@ interface MealCardProps {
 
 export function MealCard({ item, onOrderClick }: MealCardProps) {
   return (
-    <Card className="overflow-hidden h-full flex flex-col group transition-shadow hover:shadow-lg">
+    <Card className="overflow-hidden h-full flex flex-col group transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
       <CardHeader className="p-0">
         <div className="relative h-48 w-full">
           <Image
