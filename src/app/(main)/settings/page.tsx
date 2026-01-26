@@ -1,17 +1,23 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Sun, Moon, Laptop } from 'lucide-react';
+import { Sun, Moon, Laptop, Loader2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [notifications, setNotifications] = useState({
     orderStatus: true,
@@ -37,6 +43,14 @@ export default function SettingsPage() {
       router.push('/profile');
     }
   };
+
+  if (!mounted) {
+    return (
+      <div className="flex h-full items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8 text-foreground">
