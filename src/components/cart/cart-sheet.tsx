@@ -1,6 +1,7 @@
 'use client';
 
 import { useCart } from '@/lib/hooks/use-cart';
+import { useRouter } from 'next/navigation';
 import {
   Sheet,
   SheetContent,
@@ -17,12 +18,11 @@ import Image from 'next/image';
 
 export function CartSheet() {
   const { isCartOpen, setCartOpen, cartItems, removeItem, cartTotal, clearCart } = useCart();
+  const router = useRouter();
 
-  // In a real app, this would proceed to a checkout flow
   const handleCheckout = () => {
-    alert('Checkout functionality not implemented in this prototype.');
-    clearCart();
     setCartOpen(false);
+    router.push('/checkout');
   };
 
   return (
