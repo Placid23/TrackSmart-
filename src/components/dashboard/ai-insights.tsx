@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Sparkles, Lightbulb, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { Loader2, Sparkles, Lightbulb, CheckCircle, AlertTriangle, XCircle, Bot } from 'lucide-react';
 import {
-  personalizedSpendingAdvice,
-  type PersonalizedSpendingAdviceOutput,
-} from '@/ai/flows/personalized-spending-advice';
+  adaptiveRecommendations,
+  type AdaptiveRecommendationsOutput,
+} from '@/ai/flows/adaptive-recommendations';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
 import type { Transaction } from '@/lib/types';
+import { Progress } from '@/components/ui/progress';
 
 interface AIInsightsProps {
   transactions: Transaction[];
@@ -18,7 +19,7 @@ interface AIInsightsProps {
 
 export function AIInsights({ transactions }: AIInsightsProps) {
   const { profile } = useUserProfile();
-  const [insights, setInsights] = useState<PersonalizedSpendingAdviceOutput | null>(null);
+  const [insights, setInsights] = useState<AdaptiveRecommendationsOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,8 +39,9 @@ export function AIInsights({ transactions }: AIInsightsProps) {
         time: new Date(t.date).toLocaleTimeString(),
       }));
 
-      const result = await personalizedSpendingAdvice({
-        expenses: simplifiedExpenses,
+      const result = await adaptiveRecommendations({
+        spendingData: JSON.stringify(simplifiedExpenses),
+        financialGoal: profile.financialGoal,
         monthlyAllowance: profile.monthlyAllowance,
       });
       setInsights(result);
@@ -74,7 +76,7 @@ export function AIInsights({ transactions }: AIInsightsProps) {
         );
       case 'Poor':
         return (
-          <Badge variant="destructive" className="bg-warning/20 text-warning-foreground border-warning hover:bg-warning/30">
+          <Badge className="bg-destructive/20 text-destructive-foreground border-destructive hover:bg-destructive/30">
             <XCircle className="mr-2 h-4 w-4" /> Poor
           </Badge>
         );
@@ -87,16 +89,16 @@ export function AIInsights({ transactions }: AIInsightsProps) {
     <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Sparkles className="text-primary" />
-          AI Financial Advisor
+          <Bot className="text-primary" />
+          Decision-Tree Prediction Module
         </CardTitle>
-        <CardDescription>Personalized advice based on your spending.</CardDescription>
+        <CardDescription>ML-powered predictions on your spending discipline.</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow flex flex-col justify-center">
         {isLoading && (
           <div className="flex flex-col items-center gap-4 text-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">Analyzing your spending habits...</p>
+            <p className="text-muted-foreground">Applying predictive algorithm...</p>
           </div>
         )}
         {error && (
@@ -108,35 +110,38 @@ export function AIInsights({ transactions }: AIInsightsProps) {
           </div>
         )}
         {insights && (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-semibold mb-2">Spending Classification</h3>
-              {getClassificationBadge(insights.spendingClassification)}
+          <div className="space-y-6">
+             <div>
+                <h3 className="text-sm font-semibold mb-2">Spending Score</h3>
+                <div className="flex items-center gap-4">
+                    <Progress value={insights.spendingScore} className="w-full" />
+                    <span className="font-bold text-lg text-primary">{insights.spendingScore}/100</span>
+                </div>
+            </div>
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-sm font-semibold mb-2">Predicted Discipline Level</h3>
+                {getClassificationBadge(insights.spendingDisciplineLevel)}
+              </div>
             </div>
             <div>
-              <h3 className="text-sm font-semibold mb-2 flex items-center gap-2"><Lightbulb className="h-4 w-4"/>Insights</h3>
+              <h3 className="text-sm font-semibold mb-2 flex items-center gap-2"><Lightbulb className="h-4 w-4"/>Advisory Feedback</h3>
               <p className="text-sm text-muted-foreground bg-secondary p-3 rounded-md">
-                {insights.insights}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold mb-2 flex items-center gap-2"><CheckCircle className="h-4 w-4"/>Recommendations</h3>
-              <p className="text-sm text-muted-foreground bg-secondary p-3 rounded-md">
-                {insights.recommendations}
+                {insights.advisoryFeedback}
               </p>
             </div>
              <Button onClick={getInsights} variant="outline" size="sm" className="w-full mt-4">
               <Sparkles className="mr-2 h-4 w-4" />
-              Regenerate Advice
+              Re-run Prediction
             </Button>
           </div>
         )}
         {!isLoading && !insights && !error && (
            <div className="text-center">
-             <p className="text-muted-foreground mb-4">Click to get your financial analysis.</p>
+             <p className="text-muted-foreground mb-4">Click to run prediction model on your data.</p>
             <Button onClick={getInsights}>
-              <Sparkles className="mr-2 h-4 w-4" />
-              Generate Advice
+              <Bot className="mr-2 h-4 w-4" />
+              Generate Prediction
             </Button>
            </div>
         )}

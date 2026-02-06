@@ -2,9 +2,9 @@
 'use server';
 /**
  * @fileOverview This file defines a Genkit flow for providing adaptive recommendations
- * to users based on their spending patterns and financial goals.
+ * to users based on their spending patterns and financial goals, acting as a Decision Tree Prediction Module.
  *
- * - adaptiveRecommendations - A function that generates personalized spending advice.
+ * - adaptiveRecommendations - A function that generates a spending score and personalized advice.
  * - AdaptiveRecommendationsInput - The input type for the adaptiveRecommendations function.
  * - AdaptiveRecommendationsOutput - The return type for the adaptiveRecommendations function.
  */
@@ -28,12 +28,17 @@ export type AdaptiveRecommendationsInput = z.infer<
 >;
 
 const AdaptiveRecommendationsOutputSchema = z.object({
-  spendingCategory: z
+  spendingDisciplineLevel: z
+    .enum(['Good', 'Moderate', 'Poor'])
+    .describe('The predicted user spending discipline level.'),
+  spendingScore: z
+    .number()
+    .min(0)
+    .max(100)
+    .describe('A generated spending score from 0 to 100, where 100 represents perfect discipline.'),
+  advisoryFeedback: z
     .string()
-    .describe('The category of spending (Good, Moderate, or Poor).'),
-  recommendation: z
-    .string()
-    .describe('Personalized advice to improve financial management.'),
+    .describe('Short advisory feedback based on the prediction.'),
 });
 
 export type AdaptiveRecommendationsOutput = z.infer<
@@ -50,17 +55,21 @@ const prompt = ai.definePrompt({
   name: 'adaptiveRecommendationsPrompt',
   input: {schema: AdaptiveRecommendationsInputSchema},
   output: {schema: AdaptiveRecommendationsOutputSchema},
-  prompt: `You are a financial advisor providing personalized recommendations.
+  prompt: `You are an analytical AI module that functions like a decision tree to predict spending behavior.
+Your task is to analyze a user's spending data, their financial goals, and their monthly allowance to assess their financial discipline.
 
-Analyze the user's spending data and financial goals to give advice.
+Based on your analysis, you must predict the following:
+1.  **spendingDisciplineLevel**: Classify the user's spending discipline as 'Good', 'Moderate', or 'Poor'.
+2.  **spendingScore**: Generate a numerical score from 0 to 100 representing their discipline. A high score means they are meeting their goals and staying within budget. A low score indicates overspending or spending that contradicts their goals.
+3.  **advisoryFeedback**: Provide short, actionable advisory feedback based on the prediction.
 
-Spending Data: {{{spendingData}}}
-Financial Goal: {{{financialGoal}}}
-Monthly Allowance: {{{monthlyAllowance}}}
+Here is the data for your analysis:
+User's Monthly Allowance: {{{monthlyAllowance}}}
+User's Stated Financial Goal: "{{{financialGoal}}}"
+User's Historical Spending Data (JSON): {{{spendingData}}}
 
-Classify the spending as Good, Moderate, or Poor and provide a recommendation based on it.
-
-Ensure that the spendingCategory and recommendation are set appropriately.`,
+Analyze this data to predict the likelihood of overspending and determine the discipline level. Generate the score and feedback accordingly.
+Ensure the output is a valid JSON object matching the defined schema.`,
 });
 
 const adaptiveRecommendationsFlow = ai.defineFlow(
