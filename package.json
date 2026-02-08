@@ -67,6 +67,10 @@
     "recharts": {
       "react": "$react",
       "react-dom": "$react-dom"
+    },
+    "react-firebase-hooks": {
+      "react": "$react",
+      "react-dom": "$react-dom"
     }
   }
 }
