@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -89,12 +90,16 @@ export default function LoginPage() {
             router.push('/profile');
         }
     } catch (error: any) {
-        console.error("Google sign-in error", error);
-        toast({
-            variant: "destructive",
-            title: "Google Sign-In Failed",
-            description: error.message || "Could not sign in with Google.",
-        });
+        if (error.code === 'auth/popup-closed-by-user') {
+            console.warn('Google sign-in popup closed by user.');
+        } else {
+            console.error("Google sign-in error", error);
+            toast({
+                variant: "destructive",
+                title: "Google Sign-In Failed",
+                description: error.message || "Could not sign in with Google.",
+            });
+        }
     } finally {
         setIsGoogleLoading(false);
     }
