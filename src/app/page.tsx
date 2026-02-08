@@ -2,22 +2,22 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUserProfile } from '@/lib/hooks/use-user-profile';
+import { useUser } from '@/lib/hooks/use-user';
 import { Loader2 } from 'lucide-react';
 
 export default function HomePage() {
-  const { profile, isLoading } = useUserProfile();
+  const { user, isLoading } = useUser();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoading) {
-      if (profile) {
+      if (user) {
         router.replace('/dashboard');
       } else {
-        router.replace('/profile');
+        router.replace('/login');
       }
     }
-  }, [profile, isLoading, router]);
+  }, [user, isLoading, router]);
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-background">

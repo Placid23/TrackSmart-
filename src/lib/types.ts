@@ -1,6 +1,8 @@
 export type MealPlan = 'two-meal' | 'three-meal';
 
 export interface UserProfile {
+  uid: string;
+  email: string;
   fullName: string;
   studentId?: string;
   monthlyAllowance: number;

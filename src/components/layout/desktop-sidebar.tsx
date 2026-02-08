@@ -5,9 +5,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Store, History, Settings, LogOut, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { buttonVariants, Button } from '@/components/ui/button';
+import { useUser } from '@/lib/hooks/use-user';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
 import { Skeleton } from '../ui/skeleton';
 import { Avatar, AvatarFallback } from '../ui/avatar';
+import { useAuth } from '@/lib/providers/firebase-provider';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -19,11 +21,12 @@ const navItems = [
 export function DesktopSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { profile, isLoading, clearProfile } = useUserProfile();
+  const auth = useAuth();
+  const { profile, isLoading } = useUserProfile();
 
-  const handleLogout = () => {
-    clearProfile();
-    router.push('/profile');
+  const handleLogout = async () => {
+    await auth.signOut();
+    router.push('/login');
   };
 
   return (

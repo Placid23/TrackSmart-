@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -26,11 +25,14 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
 import { Loader2 } from 'lucide-react';
-import type { UserProfile } from '@/lib/types';
-import { useUser } from '@/lib/hooks/use-user';
+import { useAuth } from '@/lib/providers/firebase-provider';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 const profileFormSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email.' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
   studentId: z.string().optional(),
   monthlyAllowance: z.coerce
@@ -44,15 +46,17 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-export default function ProfilePage() {
+export default function SignUpPage() {
   const router = useRouter();
-  const { user } = useUser();
-  const { profile, updateProfile, isLoading } = useUserProfile();
+  const auth = useAuth();
+  const { createProfile } = useUserProfile();
   const { toast } = useToast();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
+      email: '',
+      password: '',
       fullName: '',
       studentId: '',
       monthlyAllowance: 100000,
@@ -62,34 +66,27 @@ export default function ProfilePage() {
     mode: 'onChange',
   });
 
-  useEffect(() => {
-    if (profile) {
-      form.reset({
-        fullName: profile.fullName,
-        studentId: profile.studentId,
-        monthlyAllowance: profile.monthlyAllowance,
-        mealPlan: profile.mealPlan,
-        financialGoal: profile.financialGoal,
+  async function onSubmit(data: ProfileFormValues) {
+    const { email, password, ...profileData } = data;
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      await createProfile(user.uid, {
+        uid: user.uid,
+        email: user.email!,
+        ...profileData,
+      });
+
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error('Signup failed:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Sign Up Failed',
+        description: error.message || 'An unexpected error occurred.',
       });
     }
-  }, [profile, form]);
-
-  async function onSubmit(data: ProfileFormValues) {
-    if (!user) return;
-    await updateProfile(data);
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been successfully updated.",
-    })
-    router.push('/dashboard');
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
   }
 
   return (
@@ -97,15 +94,42 @@ export default function ProfilePage() {
       <Card className="w-full max-w-lg animate-fade-in-up">
         <CardHeader>
           <CardTitle className="font-headline text-2xl text-primary">
-            Edit Your Profile
+            Welcome to TrackSmart+
           </CardTitle>
           <CardDescription>
-            Update your profile information below.
+            Let's set up your profile to get started with smart financial tracking.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="you@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••••••" {...field} />
+                    </FormControl>
+                     <FormDescription>Must be at least 6 characters long.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="fullName"
@@ -154,7 +178,7 @@ export default function ProfilePage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Meal Plan Selection</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select your meal plan" />
@@ -185,11 +209,19 @@ export default function ProfilePage() {
                 )}
               />
               <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                 {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update Profile
+                {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Account
               </Button>
             </form>
           </Form>
+            <div className="mt-6 text-center text-sm">
+            <p className="text-muted-foreground">
+              Already have an account?{' '}
+              <Link href="/login" className="font-medium text-primary hover:underline">
+                Log In
+              </Link>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,44 +1,41 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import type { UserProfile } from '@/lib/types';
-
-const USER_PROFILE_KEY = 'tracksmart_user_profile';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { useUser } from '@/lib/hooks/use-user';
+import { useFirestore } from '@/lib/providers/firebase-provider';
+import { UserProfile } from '@/lib/types';
+import { useCallback } from 'react';
+import { useDocumentData } from 'react-firebase-hooks/firestore';
 
 export function useUserProfile() {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, loading: userLoading, error: userError } = useUser();
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    try {
-      const item = window.localStorage.getItem(USER_PROFILE_KEY);
-      if (item) {
-        setProfile(JSON.parse(item));
-      }
-    } catch (error) {
-      console.error('Failed to load user profile from local storage', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const profileRef = user ? doc(firestore, 'users', user.uid) : null;
+  const [profile, profileLoading, profileError] = useDocumentData(profileRef);
 
-  const saveProfile = useCallback((newProfile: UserProfile) => {
-    try {
-      window.localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(newProfile));
-      setProfile(newProfile);
-    } catch (error) {
-      console.error('Failed to save user profile to local storage', error);
-    }
-  }, []);
+  const createProfile = useCallback(
+    async (uid: string, data: Omit<UserProfile, 'uid'>) => {
+      if (!firestore) return;
+      const userDoc = doc(firestore, 'users', uid);
+      await setDoc(userDoc, data);
+    },
+    [firestore]
+  );
+  
+  const updateProfile = useCallback(
+    async (data: Partial<UserProfile>) => {
+        if (!profileRef) return;
+        await updateDoc(profileRef, data);
+    },
+    [profileRef]
+  );
 
-  const clearProfile = useCallback(() => {
-    try {
-      window.localStorage.removeItem(USER_PROFILE_KEY);
-      setProfile(null);
-    } catch (error) {
-      console.error('Failed to clear user profile from local storage', error);
-    }
-  }, []);
-
-  return { profile, isLoading, saveProfile, clearProfile };
+  return {
+    profile: profile as UserProfile | undefined,
+    isLoading: userLoading || profileLoading,
+    error: userError || profileError,
+    createProfile,
+    updateProfile,
+  };
 }

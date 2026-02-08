@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/lib/providers/theme-provider';
+import { FirebaseProvider } from '@/lib/providers/firebase-provider';
+import { UserProvider } from '@/lib/hooks/use-user';
 
 export const metadata: Metadata = {
   title: 'TrackSmart+',
@@ -30,8 +32,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster />
+          <FirebaseProvider>
+            <UserProvider>
+              {children}
+              <Toaster />
+            </UserProvider>
+          </FirebaseProvider>
         </ThemeProvider>
       </body>
     </html>
