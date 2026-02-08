@@ -25,10 +25,11 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
-import { Loader2 } from 'lucide-react';
+import { Loader2, LogOut } from 'lucide-react';
 import type { UserProfile } from '@/lib/types';
 import { useUser } from '@/lib/hooks/use-user';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/lib/providers/firebase-provider';
 
 const profileFormSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
@@ -46,6 +47,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function ProfilePage() {
   const router = useRouter();
+  const auth = useAuth();
   const { user, isLoading: isUserLoading } = useUser();
   const { profile, createProfile, updateProfile, isLoading: isProfileLoading } = useUserProfile();
   const { toast } = useToast();
@@ -86,6 +88,11 @@ export default function ProfilePage() {
     }
   }, [profile, user, form, isUserLoading, isProfileLoading]);
 
+  const handleLogout = async () => {
+    await auth.signOut();
+    router.push('/login');
+  };
+
   async function onSubmit(data: ProfileFormValues) {
     if (!user) return;
     setIsSubmitting(true);
@@ -118,7 +125,8 @@ export default function ProfilePage() {
             title: "An error occurred",
             description: "Could not save your profile. Please try again.",
         });
-        setIsSubmitting(false); // Reset submission state on error
+    } finally {
+        setIsSubmitting(false);
     }
   }
 
@@ -233,6 +241,10 @@ export default function ProfilePage() {
               </Button>
             </form>
           </Form>
+          <Button variant="outline" className="w-full mt-4" onClick={handleLogout} disabled={isSubmitting}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
         </CardContent>
       </Card>
     </div>
