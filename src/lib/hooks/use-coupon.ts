@@ -1,13 +1,22 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Coupon } from '@/lib/types';
+import type { Coupon, MealPlan } from '@/lib/types';
 import { useUserProfile } from './use-user-profile';
 
 const COUPON_KEY = 'tracksmart_coupon';
 
-const getInitialCouponValue = (mealPlan: 'two-meal' | 'three-meal'): number => {
-  return mealPlan === 'two-meal' ? 4000 : 6000;
+const getInitialCouponValue = (mealPlan: MealPlan): number => {
+  switch (mealPlan) {
+    case 'two-meal':
+      return 4000;
+    case 'three-meal':
+      return 6000;
+    case 'pay-to-eat':
+      return 0;
+    default:
+      return 0;
+  }
 };
 
 const getTodayDateString = () => new Date().toISOString().split('T')[0];
@@ -23,16 +32,25 @@ export function useCoupon() {
       return;
     }
 
+    if (profile.mealPlan === 'pay-to-eat') {
+      setCoupon(null);
+      // Ensure no old coupon is lingering
+      window.localStorage.removeItem(COUPON_KEY);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const item = window.localStorage.getItem(COUPON_KEY);
       const today = getTodayDateString();
       let currentCoupon: Coupon | null = item ? JSON.parse(item) : null;
 
       if (!currentCoupon || currentCoupon.date !== today) {
+        const initialValue = getInitialCouponValue(profile.mealPlan);
         currentCoupon = {
-          value: getInitialCouponValue(profile.mealPlan),
-          initialValue: getInitialCouponValue(profile.mealPlan),
-          isValid: true,
+          value: initialValue,
+          initialValue: initialValue,
+          isValid: initialValue > 0,
           date: today,
         };
         window.localStorage.setItem(COUPON_KEY, JSON.stringify(currentCoupon));

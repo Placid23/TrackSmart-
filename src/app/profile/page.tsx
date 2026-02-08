@@ -36,7 +36,7 @@ const profileFormSchema = z.object({
   monthlyAllowance: z.coerce
     .number()
     .min(1, { message: 'Monthly allowance must be a positive number.' }),
-  mealPlan: z.enum(['two-meal', 'three-meal'], {
+  mealPlan: z.enum(['two-meal', 'three-meal', 'pay-to-eat'], {
     required_error: 'You need to select a meal plan.',
   }),
   financialGoal: z.string().min(3, { message: 'Please state a financial goal.' }),
@@ -206,6 +206,7 @@ export default function ProfilePage() {
                       <SelectContent>
                         <SelectItem value="two-meal">Two-Meal Plan (₦4,000/day coupon)</SelectItem>
                         <SelectItem value="three-meal">Three-Meal Plan (₦6,000/day coupon)</SelectItem>
+                        <SelectItem value="pay-to-eat">Pay to Eat (No daily coupon)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>This determines your daily cafeteria coupon value.</FormDescription>

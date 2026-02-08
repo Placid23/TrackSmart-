@@ -1,4 +1,4 @@
-export type MealPlan = 'two-meal' | 'three-meal';
+export type MealPlan = 'two-meal' | 'three-meal' | 'pay-to-eat';
 
 export interface UserProfile {
   uid: string;
