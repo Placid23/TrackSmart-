@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -46,9 +46,10 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user } = useUser();
-  const { profile, updateProfile, isLoading } = useUserProfile();
+  const { user, isLoading: isUserLoading } = useUser();
+  const { profile, createProfile, updateProfile, isLoading: isProfileLoading } = useUserProfile();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -63,6 +64,8 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
+    if (isUserLoading || isProfileLoading) return;
+
     if (profile) {
       form.reset({
         fullName: profile.fullName,
@@ -71,36 +74,76 @@ export default function ProfilePage() {
         mealPlan: profile.mealPlan,
         financialGoal: profile.financialGoal,
       });
+    } else if (user) {
+      // New user (e.g., from Google Sign-In), pre-fill from auth data
+      form.reset({
+        fullName: user.displayName || '',
+        studentId: '',
+        monthlyAllowance: 100000,
+        mealPlan: undefined,
+        financialGoal: 'Save 20% of my allowance monthly',
+      });
     }
-  }, [profile, form]);
+  }, [profile, user, form, isUserLoading, isProfileLoading]);
 
   async function onSubmit(data: ProfileFormValues) {
     if (!user) return;
-    await updateProfile(data);
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been successfully updated.",
-    })
-    router.push('/dashboard');
+    setIsSubmitting(true);
+
+    try {
+        if (profile) {
+            // Updating existing profile
+            await updateProfile(data);
+            toast({
+                title: "Profile Updated",
+                description: "Your profile information has been successfully updated.",
+            });
+        } else {
+            // Creating new profile
+            await createProfile({
+                uid: user.uid,
+                email: user.email!,
+                ...data,
+            });
+            toast({
+                title: "Profile Created",
+                description: "Welcome! Your profile has been set up.",
+            });
+        }
+        router.push('/dashboard');
+    } catch (error: any) {
+        console.error("Profile submission error", error);
+        toast({
+            variant: "destructive",
+            title: "An error occurred",
+            description: "Could not save your profile. Please try again.",
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
-  if (isLoading) {
+  if (isUserLoading || (!user && !isProfileLoading)) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
+  
+  const pageTitle = profile ? "Edit Your Profile" : "Complete Your Profile";
+  const pageDescription = profile ? "Update your profile information below." : "Just a few more details to get you started.";
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-lg animate-fade-in-up">
         <CardHeader>
           <CardTitle className="font-headline text-2xl text-primary">
-            Edit Your Profile
+            {pageTitle}
           </CardTitle>
           <CardDescription>
-            Update your profile information below.
+            {pageDescription}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -184,9 +227,9 @@ export default function ProfilePage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                 {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update Profile
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {profile ? 'Update Profile' : 'Save Profile'}
               </Button>
             </form>
           </Form>

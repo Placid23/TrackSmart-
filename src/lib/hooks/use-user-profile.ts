@@ -8,16 +8,16 @@ import { useCallback } from 'react';
 import { useDocumentData } from 'react-firebase-hooks/firestore';
 
 export function useUserProfile() {
-  const { user, loading: userLoading, error: userError } = useUser();
+  const { user, isLoading: userLoading, error: userError } = useUser();
   const firestore = useFirestore();
 
   const profileRef = user ? doc(firestore, 'users', user.uid) : null;
   const [profile, profileLoading, profileError] = useDocumentData(profileRef);
 
   const createProfile = useCallback(
-    async (uid: string, data: Omit<UserProfile, 'uid'>) => {
+    async (data: UserProfile) => {
       if (!firestore) return;
-      const userDoc = doc(firestore, 'users', uid);
+      const userDoc = doc(firestore, 'users', data.uid);
       await setDoc(userDoc, data);
     },
     [firestore]
