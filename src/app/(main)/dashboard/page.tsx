@@ -3,7 +3,6 @@
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { SpendingChart } from '@/components/dashboard/spending-chart';
-import { AIInsights } from '@/components/dashboard/ai-insights';
 import { Loader2 } from 'lucide-react';
 import { useTransactions } from '@/lib/hooks/use-transactions';
 import { CategorySpendingChart } from '@/components/dashboard/category-spending-chart';
@@ -39,9 +38,6 @@ export default function DashboardPage() {
         </div>
         <div className="lg:col-span-1 animate-fade-in-up" style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}>
           <CategorySpendingChart transactions={transactions} />
-        </div>
-        <div className="lg:col-span-3 animate-fade-in-up" style={{ animationDelay: '400ms', animationFillMode: 'backwards' }}>
-          <AIInsights transactions={transactions} />
         </div>
       </div>
     </div>
