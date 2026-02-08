@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/lib/providers/theme-provider';
 import { FirebaseProvider } from '@/lib/providers/firebase-provider';
 import { UserProvider } from '@/lib/hooks/use-user';
+import { AppGuard } from '@/components/layout/app-guard';
 
 export const metadata: Metadata = {
   title: 'TrackSmart+',
@@ -34,7 +35,9 @@ export default function RootLayout({
         >
           <FirebaseProvider>
             <UserProvider>
-              {children}
+              <AppGuard>
+                {children}
+              </AppGuard>
               <Toaster />
             </UserProvider>
           </FirebaseProvider>

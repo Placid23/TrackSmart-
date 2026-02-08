@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -16,9 +16,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth, useFirestore } from '@/lib/providers/firebase-provider';
+import { useAuth } from '@/lib/providers/firebase-provider';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -42,9 +41,7 @@ const GoogleIcon = () => (
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const auth = useAuth();
-  const firestore = useFirestore();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -60,8 +57,7 @@ export default function LoginPage() {
   async function onSubmit(data: LoginFormValues) {
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
-      const redirectTo = searchParams.get('redirect') || '/dashboard';
-      router.push(redirectTo);
+      router.push('/dashboard');
     } catch (error: any) {
       console.error(error);
       toast({
@@ -76,23 +72,10 @@ export default function LoginPage() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-        const userCredential = await signInWithPopup(auth, provider);
-        const user = userCredential.user;
-
-        // Check if user profile already exists
-        const userDocRef = doc(firestore, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        if (userDoc.exists()) {
-            router.push('/dashboard');
-        } else {
-            // First time login with Google, redirect to complete profile
-            router.push('/profile');
-        }
+        await signInWithPopup(auth, provider);
+        router.push('/dashboard');
     } catch (error: any) {
-        if (error.code === 'auth/popup-closed-by-user') {
-            console.warn('Google sign-in popup closed by user.');
-        } else {
+        if (error.code !== 'auth/popup-closed-by-user') {
             console.error("Google sign-in error", error);
             toast({
                 variant: "destructive",

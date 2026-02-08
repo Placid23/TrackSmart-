@@ -26,9 +26,8 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
 import { Loader2 } from 'lucide-react';
-import { useAuth, useFirestore } from '@/lib/providers/firebase-provider';
+import { useAuth } from '@/lib/providers/firebase-provider';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
@@ -61,7 +60,6 @@ const GoogleIcon = () => (
 export default function SignUpPage() {
   const router = useRouter();
   const auth = useAuth();
-  const firestore = useFirestore();
   const { createProfile } = useUserProfile();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -107,23 +105,10 @@ export default function SignUpPage() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-        const userCredential = await signInWithPopup(auth, provider);
-        const user = userCredential.user;
-
-        // Check if user profile already exists
-        const userDocRef = doc(firestore, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        if (userDoc.exists()) {
-            router.push('/dashboard');
-        } else {
-            // First time login with Google, redirect to complete profile
-            router.push('/profile');
-        }
+        await signInWithPopup(auth, provider);
+        router.push('/dashboard');
     } catch (error: any) {
-        if (error.code === 'auth/popup-closed-by-user') {
-            console.warn('Google sign-in popup closed by user.');
-        } else {
+        if (error.code !== 'auth/popup-closed-by-user') {
             console.error("Google sign-in error", error);
             toast({
                 variant: "destructive",
