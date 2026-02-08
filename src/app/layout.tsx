@@ -9,6 +9,9 @@ import { AppGuard } from '@/components/layout/app-guard';
 export const metadata: Metadata = {
   title: 'TrackSmart+',
   description: 'Smart Financial Tracking for Students',
+  icons: {
+    icon: '/icon.jpg',
+  },
 };
 
 export default function RootLayout({
