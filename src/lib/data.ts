@@ -1,4 +1,4 @@
-import type { Vendor, Transaction } from './types';
+import type { Vendor } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImageProps = (id: string) => {
@@ -62,34 +62,3 @@ export const vendors: Vendor[] = [
     ],
   },
 ];
-
-
-const generateRandomTransactions = (): Transaction[] => {
-  const transactions: Transaction[] = [];
-  const today = new Date();
-
-  for (let i = 0; i < 45; i++) {
-    const randomVendor = vendors[Math.floor(Math.random() * vendors.length)];
-    const randomItem = randomVendor.items[Math.floor(Math.random() * randomVendor.items.length)];
-    const randomDay = Math.floor(Math.random() * today.getDate()) + 1;
-    const transactionDate = new Date(today.getFullYear(), today.getMonth(), randomDay);
-
-    const isCafeteria = randomVendor.category === 'School Cafeteria';
-    const useCoupon = isCafeteria && Math.random() > 0.7;
-
-    transactions.push({
-      id: `txn_${Date.now()}_${i}`,
-      amount: randomItem.price,
-      vendor: randomVendor.name,
-      vendorCategory: randomVendor.category,
-      item: randomItem.name,
-      couponUsed: useCoupon,
-      couponAmount: useCoupon ? Math.min(randomItem.price, Math.random() > 0.5 ? 4000 : 6000) : 0,
-      cashUsed: Math.random() > 0.5,
-      date: transactionDate.toISOString(),
-    });
-  }
-  return transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-};
-
-export const sampleTransactions: Transaction[] = generateRandomTransactions();

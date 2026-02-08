@@ -1,51 +1,42 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+import { collection, query, orderBy, addDoc } from 'firebase/firestore';
+import { useCollectionData } from 'react-firebase-hooks/firestore';
 import type { Transaction } from '@/lib/types';
-import { sampleTransactions } from '@/lib/data';
-
-const TRANSACTIONS_KEY = 'tracksmart_transactions';
+import { useFirestore } from '../providers/firebase-provider';
+import { useUser } from './use-user';
 
 export function useTransactions() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const firestore = useFirestore();
+  const { user } = useUser();
+  
+  const transactionsRef = user ? collection(firestore, 'users', user.uid, 'transactions') : null;
+  const transactionsQuery = transactionsRef ? query(transactionsRef, orderBy('date', 'desc')) : null;
 
-  useEffect(() => {
-    try {
-      const item = window.localStorage.getItem(TRANSACTIONS_KEY);
-      if (item) {
-        setTransactions(JSON.parse(item));
-      } else {
-        // First time load, use sample data
-        setTransactions(sampleTransactions);
-        window.localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(sampleTransactions));
-      }
-    } catch (error) {
-      console.error('Failed to load transactions from local storage', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const [transactions, isLoading, error] = useCollectionData(transactionsQuery, {
+      idField: 'id',
+  });
 
   const addTransaction = useCallback(
-    (newTransaction: Omit<Transaction, 'id' | 'date'>) => {
+    async (newTransaction: Omit<Transaction, 'id' | 'date'>) => {
+      if (!transactionsRef) return;
       try {
-        setTransactions(prevTransactions => {
-          const fullTransaction: Transaction = {
-            ...newTransaction,
-            id: `txn_${Date.now()}`,
-            date: new Date().toISOString(),
-          };
-          const updatedTransactions = [fullTransaction, ...prevTransactions];
-          window.localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(updatedTransactions));
-          return updatedTransactions;
+        await addDoc(transactionsRef, {
+          ...newTransaction,
+          date: new Date().toISOString(),
         });
       } catch (error) {
         console.error('Failed to add transaction', error);
       }
     },
-    []
+    [transactionsRef]
   );
-
-  return { transactions, isLoading, addTransaction };
+  
+  return { 
+      transactions: (transactions as Transaction[] | undefined) || [], 
+      isLoading, 
+      error,
+      addTransaction 
+    };
 }
