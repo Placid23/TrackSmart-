@@ -62,6 +62,15 @@ export default function ProfilePage() {
     },
     mode: 'onChange',
   });
+  
+  useEffect(() => {
+    // This effect handles navigation after the profile data has been
+    // successfully fetched, but only after a submission has been initiated.
+    if (profile && isSubmitting && !isProfileLoading) {
+      router.push('/dashboard');
+    }
+  }, [profile, isSubmitting, isProfileLoading, router]);
+
 
   useEffect(() => {
     if (isUserLoading || isProfileLoading) return;
@@ -110,7 +119,7 @@ export default function ProfilePage() {
                 description: "Welcome! Your profile has been set up.",
             });
         }
-        router.push('/dashboard');
+        // The redirect is now handled by the useEffect hook, which waits for the profile state to update.
     } catch (error: any) {
         console.error("Profile submission error", error);
         toast({
@@ -118,8 +127,7 @@ export default function ProfilePage() {
             title: "An error occurred",
             description: "Could not save your profile. Please try again.",
         });
-    } finally {
-        setIsSubmitting(false);
+        setIsSubmitting(false); // Reset submission state on error
     }
   }
 
