@@ -3,7 +3,7 @@ import { createContext, useContext, ReactNode, useMemo } from 'react';
 import { initializeApp, getApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
-import { firebaseConfig } from '@/lib/firebase-config';
+import { firebaseConfig } from '../firebase-config';
 
 interface FirebaseContextType {
   app: FirebaseApp;
