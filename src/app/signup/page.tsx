@@ -37,7 +37,7 @@ const profileFormSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
-  studentId: z.string().optional(),
+  studentId: z.string().min(1, { message: 'Student ID is required.' }),
   monthlyAllowance: z.coerce
     .number()
     .min(1, { message: 'Monthly allowance must be a positive number.' }),
@@ -191,7 +191,7 @@ export default function SignUpPage() {
                 name="studentId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Student ID (Optional)</FormLabel>
+                    <FormLabel>Student ID</FormLabel>
                     <FormControl>
                       <Input placeholder="e.g., C00123456" {...field} />
                     </FormControl>
