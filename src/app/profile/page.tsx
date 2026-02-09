@@ -112,10 +112,6 @@ export default function ProfilePage() {
                 email: user.email!,
                 ...data,
             });
-            toast({
-                title: "Profile Created",
-                description: "Welcome! Your profile has been set up.",
-            });
         }
     } catch (error: any) {
         console.error("Profile submission error", error);

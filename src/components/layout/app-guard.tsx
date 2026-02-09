@@ -1,21 +1,51 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/lib/hooks/use-user';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import type { User } from 'firebase/auth';
+import type { UserProfile } from '@/lib/types';
 
 export function AppGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading: isUserLoading } = useUser();
   const { profile, isLoading: isProfileLoading } = useUserProfile();
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
+
+  const prevUserRef = useRef(user);
+  const prevProfileRef = useRef(profile);
 
   useEffect(() => {
     if (isUserLoading || isProfileLoading) {
       return; // Wait until loading is complete
     }
+
+    const prevUser = prevUserRef.current;
+    const prevProfile = prevProfileRef.current;
+
+    // Transition 1: User was created and now has a profile
+    if (user && !prevProfile && profile) {
+      toast({
+        title: `Welcome, ${profile.fullName.split(' ')[0]}!`,
+        description: 'Your account has been successfully created.',
+      });
+    }
+    // Transition 2: User logged in (and already had a profile)
+    else if (!prevUser && user && profile) {
+      toast({
+        title: `Welcome back, ${profile.fullName.split(' ')[0]}!`,
+        description: "You've successfully logged in.",
+      });
+    }
+
+    // Update refs for the next render
+    prevUserRef.current = user;
+    prevProfileRef.current = profile;
+
 
     const isAuthPage = pathname === '/login' || pathname === '/signup';
 
@@ -29,7 +59,7 @@ export function AppGuard({ children }: { children: React.ReactNode }) {
       // If logged in with profile but on an auth or profile page, redirect to dashboard
       router.replace('/dashboard');
     }
-  }, [user, profile, isUserLoading, isProfileLoading, pathname, router]);
+  }, [user, profile, isUserLoading, isProfileLoading, pathname, router, toast]);
 
   // Show a global loader while we determine the route
   if (isUserLoading || isProfileLoading) {
