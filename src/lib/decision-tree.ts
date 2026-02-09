@@ -1,5 +1,5 @@
 import type { Transaction, UserProfile, SpendingInsight, SpendingStatus } from './types';
-import { isSameDay, startOfMonth } from 'date-fns';
+import { isSameDay, startOfMonth, getDaysInMonth, getDate } from 'date-fns';
 
 interface DecisionTreeInput {
   profile: UserProfile;
@@ -19,16 +19,28 @@ export function analyzeSpending({ profile, transactions }: DecisionTreeInput): S
 
   const today = new Date();
   const monthlyAllowance = profile.monthlyAllowance;
-  const dailyBudget = monthlyAllowance > 0 ? monthlyAllowance / 30 : 0;
-
+  
   // --- Calculate Features ---
+  const monthlyTransactions = transactions.filter(t => new Date(t.date) >= startOfMonth(today));
+  const monthlySpending = monthlyTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+  // Dynamic Daily Threshold Calculation
+  const daysInMonth = getDaysInMonth(today);
+  const dayOfMonth = getDate(today);
+  // +1 to include today. Use Math.max to prevent division by zero on the last day.
+  const remainingDays = Math.max(1, daysInMonth - dayOfMonth + 1); 
+  const remainingBudget = monthlyAllowance - monthlySpending;
+  
+  // Use dynamic budget, but fall back to a simple average if budget is already exceeded
+  // to avoid negative or misleadingly large daily values.
+  const dailyBudget = (remainingBudget > 0)
+    ? remainingBudget / remainingDays
+    : monthlyAllowance / daysInMonth;
+
   const todaysTransactions = transactions.filter(t => isSameDay(new Date(t.date), today));
   const todaysSpending = todaysTransactions.reduce((sum, t) => sum + t.amount, 0);
   const todaysOrderCount = todaysTransactions.length;
 
-  const monthlyTransactions = transactions.filter(t => new Date(t.date) >= startOfMonth(today));
-  const monthlySpending = monthlyTransactions.reduce((sum, t) => sum + t.amount, 0);
-  
   const budgetUtilization = monthlyAllowance > 0 ? (monthlySpending / monthlyAllowance) * 100 : 0;
   
   const categorySpending: { [key: string]: number } = {};
@@ -65,8 +77,7 @@ export function analyzeSpending({ profile, transactions }: DecisionTreeInput): S
   }
   
   // Rule 3: High monthly spending relative to time
-  const dayOfMonth = today.getDate();
-  const monthProgress = (dayOfMonth / 30) * 100;
+  const monthProgress = (dayOfMonth / daysInMonth) * 100;
   if (budgetUtilization > monthProgress + 25) { // Significantly ahead of budget
     score -= 25;
     advice.add('You are spending your monthly allowance much faster than expected. Consider setting stricter limits.');
