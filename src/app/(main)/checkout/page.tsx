@@ -16,6 +16,8 @@ import type { CartItem } from '@/lib/types';
 import Image from 'next/image';
 import { CreditCard, Lock, Loader2, Wallet } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { usePaystackPayment } from 'react-paystack';
+import { useUserProfile } from '@/lib/hooks/use-user-profile';
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, clearCart, isInitialized } = useCart();
@@ -24,6 +26,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [paymentMethod, setPaymentMethod] = useState('card');
+  const { profile } = useUserProfile();
 
   useEffect(() => {
     if (isInitialized && cartItems.length === 0) {
@@ -44,15 +47,7 @@ export default function CheckoutPage() {
   }
   const finalTotal = cartTotal - potentialDiscount;
 
-  if (!isInitialized || cartItems.length === 0) {
-    return (
-      <div className="flex h-[80vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  const handleCheckout = () => {
+  const processOrder = () => {
     let totalCouponSavings = 0;
 
     cartItems.forEach((item: CartItem) => {
@@ -111,6 +106,59 @@ export default function CheckoutPage() {
 
     router.push('/dashboard');
   };
+  
+  const paystackConfig = {
+    reference: (new Date()).getTime().toString(),
+    email: profile?.email || '',
+    amount: Math.round(finalTotal * 100), // Amount in Kobo
+    publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
+  };
+
+  const initializePayment = usePaystackPayment(paystackConfig);
+
+  const onPaystackSuccess = (reference: any) => {
+    console.log('Paystack success reference:', reference);
+    processOrder();
+  };
+
+  const onPaystackClose = () => {
+    console.log('Paystack payment closed');
+    toast({
+      variant: 'destructive',
+      title: 'Payment Canceled',
+      description: 'You closed the payment window without completing it.',
+    });
+  };
+  
+  const handlePayment = () => {
+    if (finalTotal <= 0) {
+      processOrder();
+      return;
+    }
+
+    if (paymentMethod === 'paystack') {
+        if (!profile?.email || !process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY) {
+            toast({
+              variant: 'destructive',
+              title: 'Configuration Error',
+              description: 'Paystack is not configured correctly. Please contact support.',
+            });
+            return;
+        }
+        initializePayment({ onSuccess: onPaystackSuccess, onClose: onPaystackClose });
+    } else { // 'card' payment is a simulation
+      processOrder();
+    }
+  };
+
+
+  if (!isInitialized || cartItems.length === 0) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const getButtonText = () => {
     const methodText = paymentMethod === 'card' ? 'Card' : 'Paystack';
@@ -241,7 +289,7 @@ export default function CheckoutPage() {
                     <span>₦{finalTotal.toLocaleString()}</span>
                 </div>
               </div>
-               <Button size="lg" className="w-full mt-6" onClick={handleCheckout}>
+               <Button size="lg" className="w-full mt-6" onClick={handlePayment}>
                  {getButtonText()}
               </Button>
             </CardContent>
