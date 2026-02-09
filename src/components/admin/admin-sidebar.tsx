@@ -8,6 +8,8 @@ import {
   UtensilsCrossed,
   Store,
   LineChart,
+  ShieldCheck,
+  ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
@@ -18,6 +20,8 @@ const navItems = [
   { href: '/admin/meals', icon: UtensilsCrossed, label: 'Meal Management' },
   { href: '/admin/vendors', icon: Store, label: 'Vendor Management' },
   { href: '/admin/analytics', icon: LineChart, label: 'Analytics' },
+  { href: '/admin/security', icon: ShieldCheck, label: 'Security' },
+  { href: '/admin/audit', icon: ClipboardList, label: 'Audit Logs' },
 ];
 
 export function AdminSidebar() {
