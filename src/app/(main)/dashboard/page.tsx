@@ -6,10 +6,20 @@ import { SpendingChart } from '@/components/dashboard/spending-chart';
 import { Loader2 } from 'lucide-react';
 import { useTransactions } from '@/lib/hooks/use-transactions';
 import { CategorySpendingChart } from '@/components/dashboard/category-spending-chart';
+import { SpendingInsights } from '@/components/dashboard/spending-insights';
+import { analyzeSpending } from '@/lib/decision-tree';
+import { useMemo } from 'react';
 
 export default function DashboardPage() {
   const { profile, isLoading: isProfileLoading } = useUserProfile();
   const { transactions, isLoading: isTransactionsLoading } = useTransactions();
+
+  const spendingInsights = useMemo(() => {
+    if (!profile || isTransactionsLoading) {
+      return { status: 'Good' as const, advice: ['Loading insights...'] };
+    }
+    return analyzeSpending({ profile, transactions });
+  }, [profile, transactions, isTransactionsLoading]);
 
   if (isProfileLoading || isTransactionsLoading) {
     return (
@@ -31,6 +41,10 @@ export default function DashboardPage() {
       </div>
 
       <StatsCards transactions={transactions} monthlyAllowance={profile?.monthlyAllowance || 0} />
+
+      <div className="animate-fade-in-up" style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}>
+        <SpendingInsights insights={spendingInsights} />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 animate-fade-in-up" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}>

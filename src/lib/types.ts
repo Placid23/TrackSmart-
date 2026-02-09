@@ -68,3 +68,10 @@ export interface CartItem {
   imageUrl: string;
   vendorName: string;
 }
+
+export type SpendingStatus = 'Good' | 'Moderate' | 'Poor';
+
+export interface SpendingInsight {
+  status: SpendingStatus;
+  advice: string[];
+}
