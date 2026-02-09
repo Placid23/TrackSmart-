@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
-import { Loader2, User, Wallet, Target, Lock } from 'lucide-react';
+import { Loader2, User, Wallet, Target, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/providers/firebase-provider';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -64,6 +64,7 @@ export default function SignUpPage() {
   const { createProfile } = useUserProfile();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -164,7 +165,7 @@ export default function SignUpPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 p-4 overflow-hidden">
-      <Card className="w-full max-w-2xl animate-fade-in-up rounded-xl shadow-lg">
+      <Card className="w-full max-w-2xl animate-fade-in-up rounded-xl shadow-lg transition-shadow hover:shadow-xl">
         <CardHeader>
             <div className="flex flex-col items-center justify-center gap-3 text-center">
               <Image src="/icon.jpg" alt="TrackSmart+ Logo" width={48} height={48} className="rounded-lg"/>
@@ -172,8 +173,9 @@ export default function SignUpPage() {
                   Create your TrackSmart+ account
               </CardTitle>
             </div>
-          <CardDescription className="text-center">
-            Set up your budget once. We’ll handle the rest.
+          <CardDescription className="text-center space-y-1">
+            <p className="font-semibold text-primary">Step 1 of 1 – Account Setup</p>
+            <p>Set up your budget once. We’ll handle the rest.</p>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -191,7 +193,16 @@ export default function SignUpPage() {
                       <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input type="email" placeholder="you@example.com" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="password" render={({ field }) => (
-                      <FormItem><FormLabel>Password</FormLabel><FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl><FormMessage /></FormItem>
+                      <FormItem><FormLabel>Password</FormLabel>
+                        <FormControl>
+                            <div className="relative">
+                                <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} />
+                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>
+                                    {showPassword ? <EyeOff /> : <Eye />}
+                                </Button>
+                            </div>
+                        </FormControl>
+                      <FormMessage /></FormItem>
                     )}/>
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

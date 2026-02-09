@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/lib/providers/firebase-provider';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { Loader2, Mail, Lock } from 'lucide-react';
+import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
@@ -45,6 +45,7 @@ export default function LoginPage() {
   const auth = useAuth();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -99,7 +100,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 p-4 overflow-hidden">
       <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-12">
-        <div className="hidden md:flex flex-col justify-center items-start text-left p-8 animate-fade-in">
+        <div className="hidden md:flex flex-col justify-start pt-16 items-start text-left p-8 animate-fade-in">
           <div className="flex items-center gap-3 mb-6">
             <Image src="/icon.jpg" alt="TrackSmart+ Logo" width={56} height={56} className="rounded-lg"/>
             <h1 className="text-4xl font-bold font-headline text-primary">TrackSmart+</h1>
@@ -120,7 +121,7 @@ export default function LoginPage() {
             </li>
           </ul>
         </div>
-        <Card className="w-full max-w-md animate-fade-in-up rounded-xl shadow-lg">
+        <Card className="w-full max-w-md animate-fade-in-up rounded-xl shadow-lg transition-shadow hover:shadow-xl">
           <CardHeader className="text-center">
             <CardTitle className="font-headline text-3xl text-foreground">
               Welcome back 👋
@@ -160,7 +161,10 @@ export default function LoginPage() {
                         <FormControl>
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                            <Input type="password" placeholder="••••••••" {...field} className="pl-10 h-11"/>
+                            <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} className="pl-10 pr-10 h-11"/>
+                            <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>
+                                {showPassword ? <EyeOff /> : <Eye />}
+                            </Button>
                           </div>
                         </FormControl>
                         <FormMessage />
