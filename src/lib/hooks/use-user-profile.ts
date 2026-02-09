@@ -51,6 +51,7 @@ export function useUserProfile() {
       if (!firestore) return;
       const profileToSave: UserProfile = {
         ...data,
+        isAdmin: data.isAdmin || false,
         notificationSettings: data.notificationSettings || {
           mealReminders: true,
           paymentAlerts: true,

@@ -18,6 +18,7 @@ export interface UserProfile {
   financialGoal: string;
   financialGoalAmount?: number;
   notificationSettings?: NotificationSettings;
+  isAdmin?: boolean;
 }
 
 export type OrderStatus = 'Placed' | 'In Preparation' | 'Ready for Pickup' | 'Picked Up';
