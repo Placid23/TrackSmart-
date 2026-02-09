@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -12,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { vendors } from '@/lib/data';
-import type { CartItem } from '@/lib/types';
+import type { CartItem, Transaction, OrderItem } from '@/lib/types';
 import Image from 'next/image';
 import { CreditCard, Lock, Loader2, Wallet } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -48,50 +49,62 @@ export default function CheckoutPage() {
   const finalTotal = cartTotal - potentialDiscount;
 
   const processOrder = () => {
+    // 1. Group cart items by vendor
+    const ordersByVendor: { [key: string]: CartItem[] } = cartItems.reduce((acc, item) => {
+        if (!acc[item.vendorName]) {
+            acc[item.vendorName] = [];
+        }
+        acc[item.vendorName].push(item);
+        return acc;
+    }, {} as { [key: string]: CartItem[] });
+
     let totalCouponSavings = 0;
 
-    cartItems.forEach((item: CartItem) => {
-      const vendor = vendors.find(v => v.name === item.vendorName);
-      if (!vendor) return;
+    // 2. Create one transaction per vendor
+    Object.entries(ordersByVendor).forEach(([vendorName, items]) => {
+        const vendor = vendors.find(v => v.name === vendorName);
+        if (!vendor) return;
 
-      let finalAmount = item.price * item.quantity;
-      let couponAmount = 0;
-      let couponUsed = false;
+        const orderItems: OrderItem[] = items.map(item => ({
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity
+        }));
 
-      if (vendor.category === 'School Cafeteria') {
-        const { amountLeft } = useCouponValue(finalAmount);
-        couponAmount = finalAmount - amountLeft;
-        finalAmount = amountLeft;
+        const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-        if (couponAmount > 0) {
-          couponUsed = true;
-          totalCouponSavings += couponAmount;
+        let finalAmount = subtotal;
+        let couponAmount = 0;
+        let couponUsed = false;
+
+        if (vendor.category === 'School Cafeteria' && subtotal > 0) {
+            const { amountLeft } = useCouponValue(subtotal);
+            couponAmount = subtotal - amountLeft;
+            finalAmount = amountLeft;
+
+            if (couponAmount > 0) {
+                couponUsed = true;
+                totalCouponSavings += couponAmount;
+            }
         }
-      }
+        
+        // This is a type assertion because Omit is not filtering the type correctly in the calling function
+        const newTransaction = {
+            amount: finalAmount,
+            vendor: vendorName,
+            vendorCategory: vendor.category,
+            items: orderItems,
+            status: 'Placed',
+            couponUsed,
+            couponAmount,
+            cashUsed: false,
+        } as Omit<Transaction, 'id' | 'date'>;
 
-      if (finalAmount > 0) {
-        addTransaction({
-          amount: finalAmount,
-          vendor: item.vendorName,
-          vendorCategory: vendor.category,
-          item: item.name,
-          couponUsed: couponUsed,
-          couponAmount: couponAmount,
-          cashUsed: false,
-        });
-      } else if (couponUsed) {
-        addTransaction({
-          amount: 0,
-          vendor: item.vendorName,
-          vendorCategory: vendor.category,
-          item: item.name,
-          couponUsed: true,
-          couponAmount: couponAmount,
-          cashUsed: false,
-        });
-      }
+        if (finalAmount > 0 || couponUsed) {
+            addTransaction(newTransaction);
+        }
     });
-
+    
     clearCart();
 
     let toastDescription = 'Your order has been placed.';

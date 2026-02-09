@@ -1,3 +1,4 @@
+
 export type MealPlan = 'two-meal' | 'three-meal' | 'pay-to-eat';
 
 export interface NotificationSettings {
@@ -18,6 +19,14 @@ export interface UserProfile {
   notificationSettings?: NotificationSettings;
 }
 
+export type OrderStatus = 'Placed' | 'In Preparation' | 'Ready for Pickup' | 'Picked Up';
+
+export interface OrderItem {
+  name: string;
+  price: number;
+  quantity: number;
+}
+
 export interface Transaction {
   id: string;
   amount: number;
@@ -27,7 +36,8 @@ export interface Transaction {
   couponAmount?: number;
   cashUsed: boolean;
   date: string; // ISO string for date
-  item: string;
+  items: OrderItem[];
+  status: OrderStatus;
 }
 
 export interface VendorItem {
