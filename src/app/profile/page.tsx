@@ -117,7 +117,6 @@ export default function ProfilePage() {
                 description: "Welcome! Your profile has been set up.",
             });
         }
-        router.push('/dashboard');
     } catch (error: any) {
         console.error("Profile submission error", error);
         toast({
