@@ -26,8 +26,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     });
   }, [auth, router, toast]);
 
-  // Set timeout to 2 minutes (120,000 milliseconds)
-  useIdleTimeout(handleIdle, 120000);
+  // Set timeout to 5 minutes (300,000 milliseconds)
+  useIdleTimeout(handleIdle, 300000);
 
   return (
     <CartProvider>
