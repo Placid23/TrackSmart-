@@ -47,6 +47,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 
 const vendorCategories: VendorCategoryName[] = [
   'School Cafeteria',
@@ -54,6 +55,32 @@ const vendorCategories: VendorCategoryName[] = [
   'Gadget Vendors',
   'Health & Utility Vendors',
 ];
+
+
+const VendorActionsDropdown = ({ vendor, onEdit }: { vendor: Vendor, onEdit: (vendor: Vendor) => void }) => (
+    <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+        <Button
+            aria-haspopup="true"
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8"
+        >
+            <MoreHorizontal className="h-4 w-4" />
+            <span className="sr-only">Toggle menu</span>
+        </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => onEdit(vendor)}>Edit</DropdownMenuItem>
+            <DropdownMenuItem>View Performance</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive">
+                Delete
+            </DropdownMenuItem>
+        </DropdownMenuContent>
+    </DropdownMenu>
+);
+
 
 export default function VendorManagementPage() {
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
@@ -91,7 +118,37 @@ export default function VendorManagementPage() {
         </Button>
       </div>
 
-      <Card>
+      {/* Mobile View */}
+      <div className="grid grid-cols-1 gap-4 md:hidden">
+        {vendors.map(vendor => (
+          <Card key={`${vendor.id}-mobile`}>
+             <CardContent className="p-4 flex items-center justify-between">
+               <div className="grid gap-1.5">
+                  <p className="font-semibold">{vendor.name}</p>
+                  <p className="text-sm text-muted-foreground">{vendor.items.length} items listed</p>
+                   <div className="flex items-center gap-2 pt-1">
+                      <Badge variant="outline">{vendor.category}</Badge>
+                      <Badge
+                        variant={vendor.status === 'Active' ? 'default' : 'outline'}
+                        className={cn(
+                           vendor.status === 'Active'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-destructive/10 text-destructive'
+                        )}
+                      >
+                        {vendor.status}
+                      </Badge>
+                    </div>
+               </div>
+               <VendorActionsDropdown vendor={vendor} onEdit={handleEdit} />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+
+      {/* Desktop View */}
+      <Card className="hidden md:block">
         <CardHeader>
           <CardTitle>All Vendors</CardTitle>
           <CardDescription>
@@ -106,7 +163,7 @@ export default function VendorManagementPage() {
                 <TableHead>Category</TableHead>
                 <TableHead>Items</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>
+                <TableHead className="text-right">
                   <span className="sr-only">Actions</span>
                 </TableHead>
               </TableRow>
@@ -122,36 +179,17 @@ export default function VendorManagementPage() {
                   <TableCell>
                     <Badge
                       variant={vendor.status === 'Active' ? 'default' : 'outline'}
-                      className={
+                      className={cn(
                         vendor.status === 'Active'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-destructive/10 text-destructive'
-                      }
+                      )}
                     >
                       {vendor.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleEdit(vendor)}>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>View Performance</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                     <VendorActionsDropdown vendor={vendor} onEdit={handleEdit} />
                   </TableCell>
                 </TableRow>
               ))}
