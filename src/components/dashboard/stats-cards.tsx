@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Transaction } from '@/lib/types';
-import { TrendingUp, TrendingDown, Ticket, Banknote } from 'lucide-react';
+import { TrendingUp, TrendingDown, Ticket, Banknote, Minus } from 'lucide-react';
 import { useMemo } from 'react';
 
 interface StatsCardsProps {
@@ -55,8 +55,8 @@ export function StatsCards({ transactions, monthlyAllowance }: StatsCardsProps) 
     {
       title: 'Total Spent (This Month)',
       value: `₦${totalSpent.toLocaleString()}`,
-      icon: spendingTrend >= 0 ? TrendingDown : TrendingUp,
-      color: spendingTrend >= 0 ? 'text-red-500' : 'text-green-500',
+      icon: spendingTrend > 0 ? TrendingUp : spendingTrend < 0 ? TrendingDown : Minus,
+      color: spendingTrend > 0 ? 'text-red-500' : spendingTrend < 0 ? 'text-green-500' : 'text-muted-foreground',
       trend: spendingTrend,
     },
     {
@@ -90,8 +90,18 @@ export function StatsCards({ transactions, monthlyAllowance }: StatsCardsProps) 
           <CardContent>
             <div className="text-2xl font-bold">{stat.value}</div>
             {stat.trend !== undefined && (
-              <p className="text-xs text-muted-foreground flex items-center">
-                {stat.trend.toFixed(1)}% {stat.trend >= 0 ? 'more' : 'less'} than last month
+              <p className="text-xs text-muted-foreground">
+                {stat.trend === 0
+                  ? 'No change from last month'
+                  : (
+                    <>
+                      <span className={`font-medium ${stat.trend > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                        {Math.abs(stat.trend).toFixed(1)}%
+                      </span>
+                      {` ${stat.trend > 0 ? 'more' : 'less'} than last month`}
+                    </>
+                  )
+                }
               </p>
             )}
           </CardContent>
