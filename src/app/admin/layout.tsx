@@ -4,17 +4,32 @@ import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import React, { useEffect } from 'react';
 import Link from 'next/link';
+import { AdminSidebar } from '@/components/admin/admin-sidebar';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { PanelLeft } from 'lucide-react';
 
-// Basic admin header for now
+
 function AdminHeader() {
     return (
-        <header className="sticky top-0 z-40 w-full border-b bg-card">
-            <div className="container mx-auto flex h-16 items-center justify-between px-4">
-                <h1 className="font-headline text-xl font-bold text-primary">Admin Dashboard</h1>
-                <Link href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-primary">
-                  Return to Student View
-                </Link>
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+             <Sheet>
+              <SheetTrigger asChild>
+                <Button size="icon" variant="outline" className="sm:hidden">
+                  <PanelLeft className="h-5 w-5" />
+                  <span className="sr-only">Toggle Menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="sm:max-w-xs">
+                <AdminSidebar />
+              </SheetContent>
+            </Sheet>
+            <div className="flex-1">
+                 <h1 className="font-headline text-xl font-bold text-primary">Admin Dashboard</h1>
             </div>
+            <Link href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-primary">
+                Return to Student View
+            </Link>
         </header>
     );
 }
@@ -39,7 +54,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   if (!profile?.isAdmin) {
-    // This will be shown briefly before the redirect happens.
     return (
          <div className="flex h-screen w-full items-center justify-center bg-background">
             <p>Redirecting...</p>
@@ -50,10 +64,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
-        <AdminHeader />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
-            {children}
-        </main>
+        <aside className="fixed inset-y-0 left-0 z-10 hidden w-60 flex-col border-r bg-background sm:flex">
+             <AdminSidebar />
+        </aside>
+        <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-64">
+            <AdminHeader />
+            <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+                {children}
+            </main>
+        </div>
     </div>
   );
 }

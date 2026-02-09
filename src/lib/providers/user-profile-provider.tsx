@@ -69,6 +69,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
           orderStatus: false,
           freeMealReminder: false,
         },
+        status: data.status || 'Active',
       };
       const userDoc = doc(firestore, 'users', data.uid);
       await setDoc(userDoc, profileToSave);

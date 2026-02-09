@@ -19,6 +19,7 @@ export interface UserProfile {
   financialGoalAmount?: number;
   notificationSettings?: NotificationSettings;
   isAdmin?: boolean;
+  status?: 'Active' | 'Suspended';
 }
 
 export type OrderStatus = 'Placed' | 'In Preparation' | 'Ready for Pickup' | 'Picked Up';
