@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/lib/providers/firebase-provider';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Mail, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
@@ -45,14 +45,6 @@ export default function LoginPage() {
   const auth = useAuth();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [typingDone, setTypingDone] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setTypingDone(true);
-    }, 2000); // Typing animation duration
-    return () => clearTimeout(timer);
-  }, []);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -105,91 +97,126 @@ export default function LoginPage() {
 
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4 overflow-hidden">
-      <Card className="w-full max-w-md animate-fade-in-up">
-        <CardHeader className="text-center">
-          <div className="h-24 mb-2 flex flex-col items-center justify-center gap-3">
-            <Image src="/icon.jpg" alt="TrackSmart+ Logo" width={48} height={48} />
-            <CardTitle className={`font-headline text-2xl text-primary text-center inline-block ${typingDone ? 'animate-subtle-bounce' : 'w-[29ch] animate-typing overflow-hidden whitespace-nowrap border-r-2 border-r-primary animate-caret-blink'}`}>
-                Welcome Back to TrackSmart+
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 p-4 overflow-hidden">
+      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div className="hidden md:flex flex-col justify-center items-start text-left p-8 animate-fade-in">
+          <div className="flex items-center gap-3 mb-6">
+            <Image src="/icon.jpg" alt="TrackSmart+ Logo" width={56} height={56} className="rounded-lg"/>
+            <h1 className="text-4xl font-bold font-headline text-primary">TrackSmart+</h1>
+          </div>
+          <h2 className="text-2xl font-semibold text-foreground mb-4">Smart spending. Better choices.</h2>
+          <ul className="space-y-3 text-muted-foreground">
+            <li className="flex items-center gap-2">
+              <Lock className="text-primary"/>
+              <span>Automatic expense tracking</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <Lock className="text-primary"/>
+              <span>Budget alerts & predictions</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <Lock className="text-primary"/>
+              <span>Secure student accounts</span>
+            </li>
+          </ul>
+        </div>
+        <Card className="w-full max-w-md animate-fade-in-up rounded-xl shadow-lg">
+          <CardHeader className="text-center">
+            <CardTitle className="font-headline text-3xl text-foreground">
+              Welcome back 👋
             </CardTitle>
-          </div>
-          <CardDescription className="animate-fade-in-up" style={{ animationDelay: '2.1s' }}>
-            Sign in to access your financial dashboard.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="animate-fade-in-up" style={{ animationDelay: '2.2s' }}>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.3s' }}>
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="you@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <CardDescription>
+              Sign in to manage your spending and orders.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="space-y-2">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input type="email" placeholder="you@example.com" {...field} className="pl-10 h-11"/>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="space-y-2">
+                   <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input type="password" placeholder="••••••••" {...field} className="pl-10 h-11"/>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <div className="text-right">
+                      <Link href="#" className="text-sm text-primary hover:underline">
+                        Forgot password?
+                      </Link>
+                    </div>
+                </div>
+                <div className="pt-2">
+                  <Button type="submit" className="w-full h-11" disabled={form.formState.isSubmitting || isGoogleLoading}>
+                    {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Log In
+                  </Button>
+                </div>
+                <p className="text-xs text-center text-muted-foreground pt-2 flex items-center justify-center gap-2">
+                    <Lock size={12}/> Your data is securely protected with encryption.
+                </p>
+              </form>
+            </Form>
+
+            <div className="relative my-6">
+              <Separator />
+              <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
               </div>
-              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.4s' }}>
-                 <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                  </span>
               </div>
-              <div className="pt-2 animate-fade-in-up" style={{ animationDelay: '2.5s' }}>
-                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || isGoogleLoading}>
-                  {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Log In
+             </div>
+
+              <div>
+                <Button variant="outline" className="w-full h-11" onClick={handleGoogleSignIn} disabled={form.formState.isSubmitting || isGoogleLoading}>
+                    {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
+                    Sign in with Google
                 </Button>
+                <p className="text-xs text-muted-foreground text-center mt-2">Recommended for faster access</p>
               </div>
-            </form>
-          </Form>
 
-          <div className="relative my-6 animate-fade-in-up" style={{ animationDelay: '2.6s' }}>
-            <Separator />
-            <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
+
+            <div className="mt-6 text-center text-sm">
+              <p className="text-muted-foreground">
+                Don&apos;t have an account?{' '}
+                <Link href="/signup" className="font-medium text-primary hover:underline">
+                  Sign Up
+                </Link>
+              </p>
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-                </span>
-            </div>
-           </div>
-
-            <div className="animate-fade-in-up" style={{ animationDelay: '2.7s' }}>
-              <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={form.formState.isSubmitting || isGoogleLoading}>
-                  {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
-                  Sign in with Google
-              </Button>
-            </div>
-
-
-          <div className="mt-6 text-center text-sm animate-fade-in-up" style={{ animationDelay: '2.8s' }}>
-            <p className="text-muted-foreground">
-              Don&apos;t have an account?{' '}
-              <Link href="/signup" className="font-medium text-primary hover:underline">
-                Sign Up
-              </Link>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

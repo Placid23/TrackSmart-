@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, Wallet, Target, Lock } from 'lucide-react';
 import { useAuth } from '@/lib/providers/firebase-provider';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -64,14 +64,6 @@ export default function SignUpPage() {
   const { createProfile } = useUserProfile();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [typingDone, setTypingDone] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setTypingDone(true);
-    }, 2000); // Typing animation duration
-    return () => clearTimeout(timer);
-  }, []);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -82,10 +74,13 @@ export default function SignUpPage() {
       studentId: '',
       monthlyAllowance: 100000,
       mealPlan: undefined,
-      financialGoal: 'Save 20% of my allowance monthly',
+      financialGoal: 'Save for a new laptop',
     },
     mode: 'onChange',
   });
+
+  const monthlyAllowance = form.watch('monthlyAllowance');
+  const dailyBudget = monthlyAllowance > 0 ? (monthlyAllowance / 30).toFixed(0) : 0;
 
   async function onSubmit(data: ProfileFormValues) {
     if (!data.email || !data.password) {
@@ -105,6 +100,7 @@ export default function SignUpPage() {
         uid: user.uid,
         email: user.email!,
         ...profileData,
+        financialGoalAmount: 0,
       });
 
       // AppGuard will handle the redirect.
@@ -148,6 +144,7 @@ export default function SignUpPage() {
           monthlyAllowance: profileData.monthlyAllowance,
           mealPlan: profileData.mealPlan,
           financialGoal: profileData.financialGoal,
+          financialGoalAmount: 0,
         });
 
         // AppGuard will handle the redirect.
@@ -166,115 +163,72 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4 overflow-hidden">
-      <Card className="w-full max-w-lg animate-fade-in-up">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 p-4 overflow-hidden">
+      <Card className="w-full max-w-2xl animate-fade-in-up rounded-xl shadow-lg">
         <CardHeader>
-           <div className="h-24 mb-2 flex flex-col items-center justify-center gap-3">
-              <Image src="/icon.jpg" alt="TrackSmart+ Logo" width={48} height={48} />
-              <CardTitle className={`font-headline text-2xl text-primary text-center inline-block ${typingDone ? 'animate-subtle-bounce' : 'w-[23ch] animate-typing overflow-hidden whitespace-nowrap border-r-2 border-r-primary animate-caret-blink'}`}>
-                  Welcome to TrackSmart+
+            <div className="flex flex-col items-center justify-center gap-3 text-center">
+              <Image src="/icon.jpg" alt="TrackSmart+ Logo" width={48} height={48} className="rounded-lg"/>
+              <CardTitle className="font-headline text-3xl text-foreground">
+                  Create your TrackSmart+ account
               </CardTitle>
             </div>
-          <CardDescription className="text-center animate-fade-in-up" style={{ animationDelay: '2.1s' }}>
-            Let's set up your profile to get started with smart financial tracking.
+          <CardDescription className="text-center">
+            Set up your budget once. We’ll handle the rest.
           </CardDescription>
         </CardHeader>
-        <CardContent className="animate-fade-in-up" style={{ animationDelay: '2.2s' }}>
+        <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.3s' }}>
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Address</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder="you@example.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                 </div>
-                 <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.4s' }}>
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                 </div>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              
+              {/* Section 1: Account Information */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <User className="h-5 w-5 text-primary"/>
+                  <h3 className="text-lg font-semibold">Account Information</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="email" render={({ field }) => (
+                      <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input type="email" placeholder="you@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <FormField control={form.control} name="password" render={({ field }) => (
+                      <FormItem><FormLabel>Password</FormLabel><FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="fullName" render={({ field }) => (
+                        <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="e.g., John Doe" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <FormField control={form.control} name="studentId" render={({ field }) => (
+                        <FormItem><FormLabel>Student ID</FormLabel><FormControl><Input placeholder="e.g., C00123456" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                </div>
+                 <p className="text-xs text-muted-foreground flex items-center gap-2"><Lock size={12}/> Used to secure and personalize your account.</p>
               </div>
-              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.5s' }}>
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., John Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.6s' }}>
-                <FormField
-                  control={form.control}
-                  name="studentId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Student ID</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., C00123456" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.7s' }}>
-                <FormField
-                  control={form.control}
-                  name="monthlyAllowance"
-                  render={({ field }) => (
+              
+              <Separator/>
+
+              {/* Section 2: Budget Setup */}
+              <div className="space-y-4">
+                 <div className="flex items-center gap-3">
+                  <Wallet className="h-5 w-5 text-primary"/>
+                  <h3 className="text-lg font-semibold">Budget Setup</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField control={form.control} name="monthlyAllowance" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Monthly Allowance (₦)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="e.g., 50000" {...field} />
-                      </FormControl>
+                      <FormControl><Input type="number" placeholder="e.g., 50000" {...field} /></FormControl>
                       <FormDescription>
-                        This is your total budget for the month.
+                          ≈ ₦{Number(dailyBudget).toLocaleString()} per day
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
-                  )}
-                />
-              </div>
-              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.8s' }}>
-                <FormField
-                  control={form.control}
-                  name="mealPlan"
-                  render={({ field }) => (
+                  )}/>
+                  <FormField control={form.control} name="mealPlan" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Meal Plan Selection</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select your meal plan" />
-                          </SelectTrigger>
-                        </FormControl>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select your meal plan" /></SelectTrigger></FormControl>
                         <SelectContent>
                           <SelectItem value="two-meal">Two-Meal Plan (₦4,000/day coupon)</SelectItem>
                           <SelectItem value="three-meal">Three-Meal Plan (₦6,000/day coupon)</SelectItem>
@@ -284,27 +238,33 @@ export default function SignUpPage() {
                       <FormDescription>This determines your daily cafeteria coupon value.</FormDescription>
                       <FormMessage />
                     </FormItem>
-                  )}
-                />
+                  )}/>
+                </div>
               </div>
-              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.9s' }}>
-                 <FormField
-                  control={form.control}
-                  name="financialGoal"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Primary Financial Goal</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Save for a new laptop" {...field} />
-                      </FormControl>
-                      <FormDescription>Your goal helps us give you better advice.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
+              <Separator/>
+
+              {/* Section 3: Financial Preferences */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Target className="h-5 w-5 text-primary"/>
+                  <h3 className="text-lg font-semibold">Financial Preferences</h3>
+                </div>
+                <FormField control={form.control} name="financialGoal" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Primary Financial Goal</FormLabel>
+                    <FormControl><Input placeholder="e.g., Save for a new laptop" {...field} /></FormControl>
+                    <FormDescription>Helps us give you smarter spending advice.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}/>
               </div>
-              <div className="pt-2 animate-fade-in-up" style={{ animationDelay: '3.0s' }}>
-                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || isGoogleLoading}>
+
+
+              {/* Submission */}
+              <div className="pt-2">
+                <p className="text-xs text-center text-muted-foreground mb-4">You can update these settings anytime.</p>
+                <Button type="submit" className="w-full h-11" disabled={form.formState.isSubmitting || isGoogleLoading}>
                   {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Account
                 </Button>
@@ -312,26 +272,22 @@ export default function SignUpPage() {
             </form>
           </Form>
 
-            <div className="relative my-6 animate-fade-in-up" style={{ animationDelay: '3.1s' }}>
-                <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with
-                    </span>
-                </div>
+            <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with</span></div>
             </div>
 
-            <div className="animate-fade-in-up" style={{ animationDelay: '3.2s' }}>
-              <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={form.formState.isSubmitting || isGoogleLoading}>
+            <div>
+              <Button variant="outline" className="w-full h-11" onClick={handleGoogleSignIn} disabled={form.formState.isSubmitting || isGoogleLoading}>
                   {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
                   Sign up with Google
               </Button>
             </div>
 
+            <p className="text-xs text-center text-muted-foreground mt-4">By creating an account, you agree to our Terms and Privacy Policy.</p>
 
-            <div className="mt-6 text-center text-sm animate-fade-in-up" style={{ animationDelay: '3.3s' }}>
+
+            <div className="mt-6 text-center text-sm">
               <p className="text-muted-foreground">
                 Already have an account?{' '}
                 <Link href="/login" className="font-medium text-primary hover:underline">

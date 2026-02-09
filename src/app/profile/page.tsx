@@ -64,7 +64,7 @@ export default function ProfilePage() {
       studentId: '',
       monthlyAllowance: 100000,
       mealPlan: undefined,
-      financialGoal: 'Save 20% of my allowance monthly',
+      financialGoal: 'Save for a new laptop',
       financialGoalAmount: 0,
     },
     mode: 'onChange',
@@ -89,7 +89,7 @@ export default function ProfilePage() {
         studentId: '',
         monthlyAllowance: 100000,
         mealPlan: undefined,
-        financialGoal: 'Save 20% of my allowance monthly',
+        financialGoal: 'Save for a new laptop',
         financialGoalAmount: 0,
       });
     }
@@ -118,6 +118,7 @@ export default function ProfilePage() {
                 uid: user.uid,
                 email: user.email!,
                 ...data,
+                financialGoalAmount: data.financialGoalAmount || 0,
             });
         }
     } catch (error: any) {
