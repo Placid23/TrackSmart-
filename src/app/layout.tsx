@@ -11,7 +11,13 @@ export const metadata: Metadata = {
   description: 'Smart Financial Tracking for Students',
   icons: {
     icon: '/icon.jpg',
+    apple: '/icon.jpg',
   },
+  manifest: '/manifest.json',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: 'hsl(225 55% 32%)' },
+    { media: '(prefers-color-scheme: dark)', color: 'hsl(195 55% 52%)' },
+  ],
 };
 
 export default function RootLayout({
