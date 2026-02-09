@@ -55,8 +55,8 @@ export function AppGuard({ children }: { children: React.ReactNode }) {
     } else if (user && !profile && pathname !== '/profile') {
       // If logged in but no profile, and not on profile page, redirect to profile
       router.replace('/profile');
-    } else if (user && profile && (isAuthPage || pathname === '/profile')) {
-      // If logged in with profile but on an auth or profile page, redirect to dashboard
+    } else if (user && profile && isAuthPage) {
+      // If logged in with profile but on an auth page, redirect to dashboard
       router.replace('/dashboard');
     }
   }, [user, profile, isUserLoading, isProfileLoading, pathname, router, toast]);
