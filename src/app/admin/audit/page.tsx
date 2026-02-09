@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -123,39 +122,61 @@ export default function AuditLogPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Activity Log</CardTitle>
-          <CardDescription>
-            Displaying the 4 most recent administrative actions.
-          </CardDescription>
+      <div>
+        <CardHeader className="px-0">
+            <CardTitle>Activity Log</CardTitle>
+            <CardDescription>
+                Displaying the 4 most recent administrative actions.
+            </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Timestamp</TableHead>
-                <TableHead>Admin</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Target</TableHead>
-                <TableHead>Details</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {placeholderLogs.map((log, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-mono text-xs">{log.timestamp}</TableCell>
-                  <TableCell>{log.admin}</TableCell>
-                  <TableCell className="font-medium">{log.action}</TableCell>
-                  <TableCell>{log.target}</TableCell>
-                  <TableCell>{log.details}</TableCell>
+
+        {/* Mobile View */}
+        <div className="space-y-4 md:hidden">
+            {placeholderLogs.map((log, index) => (
+                <Card key={index}>
+                    <CardContent className="p-4 space-y-2">
+                        <div className="flex justify-between items-start">
+                            <p className="font-semibold text-primary">{log.action}</p>
+                            <p className="text-xs text-muted-foreground font-mono">{log.timestamp}</p>
+                        </div>
+                        <div className="text-sm">
+                            <p><span className="font-medium">Target:</span> {log.target}</p>
+                            <p><span className="font-medium">Admin:</span> {log.admin}</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground pt-1">{log.details}</p>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+
+        {/* Desktop View */}
+        <Card className="hidden md:block">
+            <CardContent className="p-0">
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>Timestamp</TableHead>
+                    <TableHead>Admin</TableHead>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Target</TableHead>
+                    <TableHead>Details</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                {placeholderLogs.map((log, index) => (
+                    <TableRow key={index}>
+                    <TableCell className="font-mono text-xs">{log.timestamp}</TableCell>
+                    <TableCell>{log.admin}</TableCell>
+                    <TableCell className="font-medium">{log.action}</TableCell>
+                    <TableCell>{log.target}</TableCell>
+                    <TableCell>{log.details}</TableCell>
+                    </TableRow>
+                ))}
+                </TableBody>
+            </Table>
+            </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
-
