@@ -106,7 +106,7 @@ export default function SignUpPage() {
         ...profileData,
       });
 
-      router.push('/dashboard');
+      // AppGuard will handle the redirect.
     } catch (error: any) {
       console.error('Signup failed:', error);
       toast({
@@ -149,7 +149,7 @@ export default function SignUpPage() {
           financialGoal: profileData.financialGoal,
         });
 
-        router.push('/dashboard');
+        // AppGuard will handle the redirect.
     } catch (error: any) {
         if (error.code !== 'auth/popup-closed-by-user') {
             console.error("Google sign-in error", error);

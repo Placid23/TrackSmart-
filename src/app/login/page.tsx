@@ -65,7 +65,7 @@ export default function LoginPage() {
   async function onSubmit(data: LoginFormValues) {
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
-      router.push('/dashboard');
+      // AppGuard will handle the redirect.
     } catch (error: any) {
       console.error(error);
       let description = 'An unexpected error occurred.';
@@ -87,7 +87,7 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
         await signInWithPopup(auth, provider);
-        router.push('/dashboard');
+        // AppGuard will handle the redirect.
     } catch (error: any) {
         if (error.code !== 'auth/popup-closed-by-user') {
             console.error("Google sign-in error", error);
