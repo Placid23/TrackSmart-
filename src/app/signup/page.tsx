@@ -31,6 +31,7 @@ import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } f
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
+import Image from 'next/image';
 
 const profileFormSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }).optional().or(z.literal('')),
@@ -169,21 +170,7 @@ export default function SignUpPage() {
       <Card className="w-full max-w-lg animate-fade-in-up">
         <CardHeader>
            <div className="h-24 mb-2 flex flex-col items-center justify-center gap-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-10 w-10 text-primary"
-              >
-                <path d="M12 2H2v10l9.29 9.29a1 1 0 0 0 1.41 0l10-10A1 1 0 0 0 22 11Z" />
-                <path d="M7 7h.01" />
-              </svg>
+              <Image src="/icon.jpg" alt="TrackSmart+ Logo" width={48} height={48} />
               <CardTitle className={`font-headline text-2xl text-primary text-center inline-block ${typingDone ? 'animate-subtle-bounce' : 'w-[23ch] animate-typing overflow-hidden whitespace-nowrap border-r-2 border-r-primary animate-caret-blink'}`}>
                   Welcome to TrackSmart+
               </CardTitle>
