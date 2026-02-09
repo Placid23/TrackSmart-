@@ -28,6 +28,9 @@ export default function ReportsPage() {
   const { transactions, isLoading } = useTransactions();
 
   const renderItems = (items: { name: string; quantity: number }[]) => {
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return 'N/A';
+    }
     const displayItems = items.map(i => `${i.name} (x${i.quantity})`);
     if (displayItems.join(', ').length > 50) {
       return displayItems[0] + '...';
