@@ -37,8 +37,8 @@ export default function ReportsPage() {
           <>
             {/* Mobile View */}
             <div className="space-y-4 md:hidden">
-              {transactions.map(t => (
-                <Card key={t.id}>
+              {transactions.map((t, index) => (
+                <Card key={`${t.id}-${index}`}>
                   <CardContent className="p-4 flex items-start justify-between gap-4">
                     <div className="flex-grow space-y-1">
                       <p className="font-semibold">{t.item}</p>
@@ -81,8 +81,8 @@ export default function ReportsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {transactions.map(t => (
-                          <TableRow key={t.id}>
+                        {transactions.map((t, index) => (
+                          <TableRow key={`${t.id}-${index}`}>
                             <TableCell className="font-medium">
                               {new Date(t.date).toLocaleDateString()}
                             </TableCell>
