@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -77,32 +76,26 @@ export default function SecurityPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
+      <div>
+        <CardHeader className="px-0">
           <CardTitle>Recent Login Activity</CardTitle>
           <CardDescription>
             A log of the most recent user login attempts.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>IP Address</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {placeholderLogins.map((login, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{login.user}</TableCell>
-                  <TableCell>{login.ip}</TableCell>
-                  <TableCell>{login.time}</TableCell>
-                  <TableCell>
-                    <Badge variant={login.status === 'Success' ? 'default' : 'destructive'}
+        
+        {/* Mobile View */}
+        <div className="space-y-4 md:hidden">
+          {placeholderLogins.map((login, index) => (
+            <Card key={index}>
+              <CardContent className="p-4 flex items-start justify-between gap-4">
+                 <div className="flex-grow space-y-1">
+                  <p className="font-semibold">{login.user}</p>
+                  <p className="text-sm text-muted-foreground">{login.ip}</p>
+                  <p className="text-xs text-muted-foreground">{login.time}</p>
+                </div>
+                <div className="text-right flex-shrink-0 flex flex-col items-end gap-2">
+                   <Badge variant={login.status === 'Success' ? 'default' : 'destructive'}
                      className={
                         login.status === 'Success'
                           ? 'bg-green-100 text-green-800'
@@ -111,18 +104,57 @@ export default function SecurityPage() {
                     >
                       {login.status}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm">
-                      View Details
-                    </Button>
-                  </TableCell>
+                  <Button variant="outline" size="sm">
+                    View Details
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Desktop View */}
+        <Card className="hidden md:block">
+           <CardContent className="p-0">
+             <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>IP Address</TableHead>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {placeholderLogins.map((login, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">{login.user}</TableCell>
+                    <TableCell>{login.ip}</TableCell>
+                    <TableCell>{login.time}</TableCell>
+                    <TableCell>
+                      <Badge variant={login.status === 'Success' ? 'default' : 'destructive'}
+                      className={
+                          login.status === 'Success'
+                            ? 'bg-green-100 text-green-800'
+                            : ''
+                        }
+                      >
+                        {login.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="outline" size="sm">
+                        View Details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
 
         <Card>
           <CardHeader>
