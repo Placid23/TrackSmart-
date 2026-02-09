@@ -1,31 +1,80 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Sun, Moon, Laptop, Loader2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Sun, Moon, Laptop, Loader2, UploadCloud, User } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useUserProfile } from '@/lib/hooks/use-user-profile';
+import { useToast } from '@/hooks/use-toast';
+
+const personalInfoSchema = z.object({
+  fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
+});
+
+type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
 
 export default function SettingsPage() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
+  const { profile, updateProfile, isLoading: isProfileLoading } = useUserProfile();
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [notifications, setNotifications] = useState({
     orderStatus: true,
     freeMeal: false,
   });
 
+  const form = useForm<PersonalInfoFormValues>({
+    resolver: zodResolver(personalInfoSchema),
+    defaultValues: { fullName: '' },
+    mode: 'onChange',
+  });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  useEffect(() => {
+    if (profile) {
+      form.reset({
+        fullName: profile.fullName,
+      });
+    }
+  }, [profile, form]);
+
+  async function onSubmit(data: PersonalInfoFormValues) {
+    if (!profile) return;
+    setIsSubmitting(true);
+    try {
+      await updateProfile({ fullName: data.fullName });
+      toast({
+        title: 'Profile Updated',
+        description: 'Your personal information has been saved.',
+      });
+    } catch (error) {
+       toast({
+        variant: 'destructive',
+        title: 'Update Failed',
+        description: 'Could not update your profile. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   const handleDownloadData = () => {
-    // In a real app, this would generate and download user data.
     const data = { Note: "This is a placeholder for user data."};
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -38,13 +87,12 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = () => {
     if (window.confirm('Are you sure you want to delete your account? This action is irreversible.')) {
-      // In a real app, clear all user data and navigate to a sign-up page.
       window.localStorage.clear();
       router.push('/profile');
     }
   };
 
-  if (!mounted) {
+  if (!mounted || isProfileLoading) {
     return (
       <div className="flex h-full items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -59,6 +107,57 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid gap-8 max-w-4xl mx-auto">
+        
+        {/* Personal Information */}
+        <Card className="animate-fade-in-up" style={{ animationFillMode: 'backwards', animationDelay: '0ms' }}>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+                <CardDescription>Update your profile photo and personal details.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-8">
+                <div className="flex items-center gap-6">
+                  <Avatar className="h-20 w-20">
+                     <AvatarFallback className="text-3xl bg-gradient-to-br from-primary to-accent">
+                        {profile?.fullName.split(' ').map(n => n[0]).join('') || <User />}
+                      </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <Button type="button" variant="outline"><UploadCloud className="mr-2"/>Change Photo</Button>
+                    <p className="text-xs text-muted-foreground mt-2">PNG, JPG, GIF up to 5MB.</p>
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Alex Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input id="email" type="email" value={profile?.email || ''} disabled />
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="justify-end">
+                <Button type="submit" disabled={isSubmitting} className="bg-success hover:bg-success/90">
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Update Profile
+                </Button>
+              </CardFooter>
+            </form>
+          </Form>
+        </Card>
+
         {/* Notifications */}
         <Card className="animate-fade-in-up" style={{ animationFillMode: 'backwards', animationDelay: '100ms' }}>
           <CardHeader>
