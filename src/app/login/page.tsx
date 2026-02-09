@@ -107,8 +107,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4 overflow-hidden">
       <Card className="w-full max-w-md animate-fade-in-up">
         <CardHeader className="text-center">
-          <div className="h-8 mb-2 flex justify-center">
-             <CardTitle className={`font-headline text-2xl text-primary inline-block ${typingDone ? 'animate-subtle-bounce' : 'w-[29ch] animate-typing overflow-hidden whitespace-nowrap border-r-2 border-r-primary animate-caret-blink'}`}>
+          <div className="h-16 mb-2 flex items-center justify-center">
+             <CardTitle className={`font-headline text-2xl text-primary text-center inline-block ${typingDone ? 'animate-subtle-bounce' : 'w-[29ch] animate-typing overflow-hidden whitespace-nowrap border-r-2 border-r-primary animate-caret-blink'}`}>
                 Welcome Back to TrackSmart+
             </CardTitle>
           </div>
