@@ -1,5 +1,12 @@
 export type MealPlan = 'two-meal' | 'three-meal' | 'pay-to-eat';
 
+export interface NotificationSettings {
+  mealReminders: boolean;
+  paymentAlerts: boolean;
+  orderStatus: boolean;
+  freeMealReminder: boolean;
+}
+
 export interface UserProfile {
   uid: string;
   email: string;
@@ -8,6 +15,7 @@ export interface UserProfile {
   monthlyAllowance: number;
   mealPlan: MealPlan;
   financialGoal: string;
+  notificationSettings?: NotificationSettings;
 }
 
 export interface Transaction {

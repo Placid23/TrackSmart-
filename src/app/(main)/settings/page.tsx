@@ -17,6 +17,7 @@ import { useTheme } from 'next-themes';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/providers/firebase-provider';
+import type { NotificationSettings } from '@/lib/types';
 
 const personalInfoSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
@@ -33,10 +34,6 @@ export default function SettingsPage() {
   const { profile, updateProfile, isLoading: isProfileLoading } = useUserProfile();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [notifications, setNotifications] = useState({
-    orderStatus: true,
-    freeMeal: false,
-  });
 
   const form = useForm<PersonalInfoFormValues>({
     resolver: zodResolver(personalInfoSchema),
@@ -53,8 +50,19 @@ export default function SettingsPage() {
       form.reset({
         fullName: profile.fullName,
       });
+      // For users who created accounts before this feature
+      if (!profile.notificationSettings) {
+        updateProfile({
+          notificationSettings: {
+            mealReminders: true,
+            paymentAlerts: true,
+            orderStatus: false,
+            freeMealReminder: false,
+          }
+        })
+      }
     }
-  }, [profile, form]);
+  }, [profile, form, updateProfile]);
 
   async function onSubmit(data: PersonalInfoFormValues) {
     if (!profile) return;
@@ -75,6 +83,13 @@ export default function SettingsPage() {
       setIsSubmitting(false);
     }
   }
+
+  const handleNotificationChange = (key: keyof NotificationSettings, value: boolean) => {
+    if (profile?.notificationSettings) {
+      const newSettings = { ...profile.notificationSettings, [key]: value };
+      updateProfile({ notificationSettings: newSettings });
+    }
+  };
 
   const handleDownloadData = () => {
     const data = { Note: "This is a placeholder for user data."};
@@ -164,17 +179,43 @@ export default function SettingsPage() {
         <Card className="animate-fade-in-up" style={{ animationFillMode: 'backwards', animationDelay: '100ms' }}>
           <CardHeader>
             <CardTitle>Notifications</CardTitle>
+            <CardDescription>Manage your app notifications.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
+                <Label htmlFor="meal-reminders" className="text-base font-medium">Receive meal reminders</Label>
+                <p className="text-sm text-muted-foreground">Get notified before meal times.</p>
+              </div>
+              <Switch
+                id="meal-reminders"
+                checked={profile?.notificationSettings?.mealReminders ?? true}
+                onCheckedChange={(checked) => handleNotificationChange('mealReminders', checked)}
+                disabled={!profile?.notificationSettings}
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <Label htmlFor="payment-alerts" className="text-base font-medium">Receive payment alerts</Label>
+                <p className="text-sm text-muted-foreground">Alerts for successful or failed payments.</p>
+              </div>
+              <Switch
+                id="payment-alerts"
+                checked={profile?.notificationSettings?.paymentAlerts ?? true}
+                onCheckedChange={(checked) => handleNotificationChange('paymentAlerts', checked)}
+                disabled={!profile?.notificationSettings}
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
                 <Label htmlFor="order-status" className="text-base font-medium">Order status notifications</Label>
-                <p className="text-sm text-muted-foreground">Updates on your real order status.</p>
+                <p className="text-sm text-muted-foreground">Updates on your meal order status.</p>
               </div>
               <Switch
                 id="order-status"
-                checked={notifications.orderStatus}
-                onCheckedChange={(checked) => setNotifications(p => ({ ...p, orderStatus: checked }))}
+                checked={profile?.notificationSettings?.orderStatus ?? false}
+                onCheckedChange={(checked) => handleNotificationChange('orderStatus', checked)}
+                disabled={!profile?.notificationSettings}
               />
             </div>
             <div className="flex items-center justify-between rounded-lg border p-4">
@@ -184,8 +225,9 @@ export default function SettingsPage() {
               </div>
               <Switch
                 id="free-meal"
-                checked={notifications.freeMeal}
-                onCheckedChange={(checked) => setNotifications(p => ({ ...p, freeMeal: checked }))}
+                checked={profile?.notificationSettings?.freeMealReminder ?? false}
+                onCheckedChange={(checked) => handleNotificationChange('freeMealReminder', checked)}
+                disabled={!profile?.notificationSettings}
               />
             </div>
           </CardContent>

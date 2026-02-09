@@ -49,9 +49,18 @@ export function useUserProfile() {
   const createProfile = useCallback(
     async (data: UserProfile) => {
       if (!firestore) return;
+      const profileToSave: UserProfile = {
+        ...data,
+        notificationSettings: data.notificationSettings || {
+          mealReminders: true,
+          paymentAlerts: true,
+          orderStatus: false,
+          freeMealReminder: false,
+        },
+      };
       const userDoc = doc(firestore, 'users', data.uid);
-      await setDoc(userDoc, data);
-      setProfile(data); // Manually set state to prevent race condition
+      await setDoc(userDoc, profileToSave);
+      setProfile(profileToSave); // Manually set state to prevent race condition
     },
     [firestore]
   );
