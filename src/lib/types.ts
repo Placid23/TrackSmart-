@@ -61,9 +61,11 @@ export type VendorCategoryName =
   | 'Health & Utility Vendors';
 
 export interface Vendor {
+  id: string;
   name: string;
   category: VendorCategoryName;
   items: VendorItem[];
+  status: 'Active' | 'Inactive';
 }
 
 export interface Coupon {

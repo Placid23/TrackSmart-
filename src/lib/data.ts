@@ -11,8 +11,10 @@ const getImageProps = (id: string) => {
 
 export const vendors: Vendor[] = [
   {
+    id: 'vendor-1',
     name: 'Main Cafeteria',
     category: 'School Cafeteria',
+    status: 'Active',
     items: [
       { name: 'Jollof Rice & Chicken', price: 1500, mealTime: ['Lunch', 'Dinner'], ...getImageProps('food-jollof-rice'), description: 'A classic Nigerian party dish, featuring smoky and savory long-grain rice cooked in a rich tomato and pepper sauce, served with a piece of seasoned grilled chicken.', ingredients: ['Rice', 'Chicken', 'Tomato', 'Pepper', 'Onion', 'Spices'], allergens: ['None'] },
       { name: 'Fried Rice & Beef', price: 1500, mealTime: ['Lunch', 'Dinner'], ...getImageProps('food-fried-rice'), description: 'Flavorful fried rice with mixed vegetables and tender beef chunks.', ingredients: ['Rice', 'Beef', 'Carrots', 'Peas', 'Sweet Corn', 'Soy Sauce'], allergens: ['Soy'] },
@@ -23,8 +25,10 @@ export const vendors: Vendor[] = [
     ],
   },
   {
+    id: 'vendor-2',
     name: 'Mama Put Express',
     category: 'Private Food Vendors',
+    status: 'Active',
     items: [
       { name: 'Amala & Gbegiri', price: 1800, mealTime: ['Lunch', 'Dinner'], imageUrl: 'https://picsum.photos/seed/amala/600/400', imageHint: 'amala gbegiri', description: 'A traditional Yoruba delicacy of smooth yam flour dough with a savory bean soup.', ingredients: ['Yam Flour', 'Beans', 'Palm Oil', 'Pepper'], allergens: ['Beans'] },
       { name: 'Pounded Yam & Efo Riro', price: 2000, mealTime: ['Lunch', 'Dinner'], imageUrl: 'https://picsum.photos/seed/poundedyam/600/400', imageHint: 'pounded yam', description: 'Soft, stretchy pounded yam served with a rich vegetable soup.', ingredients: ['Yam', 'Spinach', 'Bell Peppers', 'Palm Oil'], allergens: ['None'] },
@@ -33,8 +37,10 @@ export const vendors: Vendor[] = [
     ],
   },
   {
+    id: 'vendor-3',
     name: 'Foodies Corner',
     category: 'Private Food Vendors',
+    status: 'Active',
     items: [
       { name: 'Pizza Slice', price: 1500, mealTime: ['Lunch', 'Dinner'], ...getImageProps('food-pizza'), description: 'A classic slice of pepperoni pizza with mozzarella cheese.', ingredients: ['Flour', 'Tomato Sauce', 'Cheese', 'Pepperoni'], allergens: ['Gluten', 'Dairy'] },
       { name: 'Small Chops Platter', price: 2000, mealTime: ['Lunch', 'Dinner'], imageUrl: 'https://picsum.photos/seed/chops/600/400', imageHint: 'small chops', description: 'A delightful assortment of finger foods including samosa, spring rolls, and puff-puff.', ingredients: ['Flour', 'Meat', 'Vegetables', 'Oil'], allergens: ['Gluten'] },
@@ -42,8 +48,10 @@ export const vendors: Vendor[] = [
     ],
   },
   {
+    id: 'vendor-4',
     name: 'TechHub',
     category: 'Gadget Vendors',
+    status: 'Active',
     items: [
       { name: 'USB-C Cable', price: 3500, description: 'A durable 1-meter USB-C to USB-C cable.', ingredients: [], allergens: [], imageUrl: 'https://picsum.photos/seed/cable/600/400', imageHint: 'usb cable' },
       { name: 'Power Bank (10000mAh)', price: 15000, description: 'A slim and powerful power bank to keep your devices charged.', ingredients: [], allergens: [], imageUrl: 'https://picsum.photos/seed/powerbank/600/400', imageHint: 'power bank' },
@@ -52,8 +60,10 @@ export const vendors: Vendor[] = [
     ],
   },
   {
+    id: 'vendor-5',
     name: 'Campus Meds',
     category: 'Health & Utility Vendors',
+    status: 'Active',
     items: [
       { name: 'Painkillers (Pack)', price: 500, description: 'A pack of 16 paracetamol tablets.', ingredients: [], allergens: [], imageUrl: 'https://picsum.photos/seed/pills/600/400', imageHint: 'medicine pack' },
       { name: 'Hand Sanitizer', price: 1000, description: 'A 100ml bottle of alcohol-based hand sanitizer.', ingredients: [], allergens: [], imageUrl: 'https://picsum.photos/seed/sanitizer/600/400', imageHint: 'sanitizer' },
