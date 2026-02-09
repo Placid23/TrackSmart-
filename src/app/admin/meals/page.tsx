@@ -49,6 +49,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 
 // Flatten the meals data
 const allMeals = vendors.flatMap(vendor =>
@@ -63,9 +64,35 @@ const allMeals = vendors.flatMap(vendor =>
 
 type MealWithVendor = (typeof allMeals)[0];
 
+const MealActionsDropdown = ({ meal, onEdit }: { meal: MealWithVendor, onEdit: (meal: MealWithVendor) => void }) => (
+    <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+        <Button
+            aria-haspopup="true"
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8"
+        >
+            <MoreHorizontal className="h-4 w-4" />
+            <span className="sr-only">Toggle menu</span>
+        </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => onEdit(meal)}>Edit</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive">
+                Delete
+            </DropdownMenuItem>
+        </DropdownMenuContent>
+    </DropdownMenu>
+);
+
+
 export default function MealManagementPage() {
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
-  const [selectedMeal, setSelectedMeal] = React.useState<MealWithVendor | null>(null);
+  const [selectedMeal, setSelectedMeal] = React.useState<MealWithVendor | null>(
+    null
+  );
 
   const handleCreateNew = () => {
     setSelectedMeal(null);
@@ -79,8 +106,8 @@ export default function MealManagementPage() {
 
   const sheetTitle = selectedMeal ? 'Edit Meal' : 'Create New Meal';
   const sheetDescription = selectedMeal
-    ? "Update the details of this meal."
-    : "Add a new meal to the menu.";
+    ? 'Update the details of this meal.'
+    : 'Add a new meal to the menu.';
 
   return (
     <div className="space-y-8 animate-fade-in-up">
@@ -99,7 +126,43 @@ export default function MealManagementPage() {
         </Button>
       </div>
 
-      <Card>
+       {/* Mobile View */}
+      <div className="grid grid-cols-1 gap-4 md:hidden">
+        {allMeals.map(meal => (
+          <Card key={`${meal.name}-${meal.vendorName}-mobile`}>
+             <CardContent className="p-4 flex items-center justify-between">
+               <div className="flex items-center gap-4">
+                  <Image
+                    alt={meal.name}
+                    className="aspect-square rounded-md object-cover"
+                    height="64"
+                    src={meal.imageUrl}
+                    width="64"
+                  />
+                  <div className="grid gap-0.5">
+                    <p className="font-semibold">{meal.name}</p>
+                    <p className="text-xs text-muted-foreground">{meal.vendorName}</p>
+                     <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <Badge
+                          variant={meal.status === 'Enabled' ? 'default' : 'outline'}
+                          className={cn(meal.status === 'Enabled' && 'bg-green-100 text-green-800')}
+                        >
+                          {meal.status}
+                        </Badge>
+                        <p className="font-semibold text-sm">
+                           ₦{meal.price.toLocaleString()}
+                        </p>
+                      </div>
+                  </div>
+               </div>
+               <MealActionsDropdown meal={meal} onEdit={handleEdit} />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Desktop View */}
+      <Card className="hidden md:block">
         <CardHeader>
           <CardTitle>All Meals</CardTitle>
           <CardDescription>
@@ -138,7 +201,9 @@ export default function MealManagementPage() {
                   <TableCell>{meal.vendorName}</TableCell>
                   <TableCell>
                     <Badge
-                      variant={meal.status === 'Enabled' ? 'default' : 'outline'}
+                      variant={
+                        meal.status === 'Enabled' ? 'default' : 'outline'
+                      }
                       className={
                         meal.status === 'Enabled'
                           ? 'bg-green-100 text-green-800'
@@ -151,26 +216,8 @@ export default function MealManagementPage() {
                   <TableCell className="text-right">
                     ₦{meal.price.toLocaleString()}
                   </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleEdit(meal)}>Edit</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <TableCell className="text-right">
+                    <MealActionsDropdown meal={meal} onEdit={handleEdit} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -199,31 +246,40 @@ export default function MealManagementPage() {
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-3">
-                    <Label htmlFor="price">Price (₦)</Label>
-                    <Input id="price" type="number" defaultValue={selectedMeal?.price} />
-                </div>
-                 <div className="grid gap-3">
-                    <Label htmlFor="vendor">Vendor</Label>
-                    <Select defaultValue={selectedMeal?.vendorName}>
-                        <SelectTrigger id="vendor">
-                            <SelectValue placeholder="Select a vendor" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {vendors.map(v => (
-                                <SelectItem key={v.name} value={v.name}>{v.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+              <div className="grid gap-3">
+                <Label htmlFor="price">Price (₦)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  defaultValue={selectedMeal?.price}
+                />
+              </div>
+              <div className="grid gap-3">
+                <Label htmlFor="vendor">Vendor</Label>
+                <Select defaultValue={selectedMeal?.vendorName}>
+                  <SelectTrigger id="vendor">
+                    <SelectValue placeholder="Select a vendor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vendors.map(v => (
+                      <SelectItem key={v.name} value={v.name}>
+                        {v.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-             <div className="grid gap-3">
-                <Label htmlFor="image-url">Image URL</Label>
-                <Input id="image-url" defaultValue={selectedMeal?.imageUrl} />
+            <div className="grid gap-3">
+              <Label htmlFor="image-url">Image URL</Label>
+              <Input id="image-url" defaultValue={selectedMeal?.imageUrl} />
             </div>
-             <div className="flex items-center space-x-2">
-                <Switch id="status" defaultChecked={selectedMeal?.status === 'Enabled' ?? true} />
-                <Label htmlFor="status">Meal is Enabled</Label>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="status"
+                defaultChecked={selectedMeal?.status === 'Enabled' ?? true}
+              />
+              <Label htmlFor="status">Meal is Enabled</Label>
             </div>
           </div>
           <SheetFooter>
