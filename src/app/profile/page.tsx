@@ -41,6 +41,10 @@ const profileFormSchema = z.object({
     required_error: 'You need to select a meal plan.',
   }),
   financialGoal: z.string().min(3, { message: 'Please state a financial goal.' }),
+  financialGoalAmount: z.coerce
+    .number()
+    .min(0, { message: 'Goal amount must be a positive number.' })
+    .optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -61,6 +65,7 @@ export default function ProfilePage() {
       monthlyAllowance: 100000,
       mealPlan: undefined,
       financialGoal: 'Save 20% of my allowance monthly',
+      financialGoalAmount: 0,
     },
     mode: 'onChange',
   });
@@ -75,6 +80,7 @@ export default function ProfilePage() {
         monthlyAllowance: profile.monthlyAllowance,
         mealPlan: profile.mealPlan,
         financialGoal: profile.financialGoal,
+        financialGoalAmount: profile.financialGoalAmount || 0,
       });
     } else if (user) {
       // New user (e.g., from Google Sign-In), pre-fill from auth data
@@ -84,6 +90,7 @@ export default function ProfilePage() {
         monthlyAllowance: 100000,
         mealPlan: undefined,
         financialGoal: 'Save 20% of my allowance monthly',
+        financialGoalAmount: 0,
       });
     }
   }, [profile, user, form, isUserLoading, isProfileLoading]);
@@ -226,6 +233,22 @@ export default function ProfilePage() {
                       <Input placeholder="e.g., Save for a new laptop" {...field} />
                     </FormControl>
                     <FormDescription>Your goal helps us give you better advice.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="financialGoalAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Goal Amount (₦)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="e.g., 150000" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                        The target amount for your financial goal.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

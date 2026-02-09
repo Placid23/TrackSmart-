@@ -16,6 +16,7 @@ export interface UserProfile {
   monthlyAllowance: number;
   mealPlan: MealPlan;
   financialGoal: string;
+  financialGoalAmount?: number;
   notificationSettings?: NotificationSettings;
 }
 

@@ -9,6 +9,7 @@ import { CategorySpendingChart } from '@/components/dashboard/category-spending-
 import { SpendingInsights } from '@/components/dashboard/spending-insights';
 import { analyzeSpending } from '@/lib/decision-tree';
 import { useMemo } from 'react';
+import { FinancialGoalCard } from '@/components/dashboard/financial-goal-card';
 
 export default function DashboardPage() {
   const { profile, isLoading: isProfileLoading } = useUserProfile();
@@ -42,15 +43,24 @@ export default function DashboardPage() {
 
       <StatsCards transactions={transactions} monthlyAllowance={profile?.monthlyAllowance || 0} />
 
-      <div className="animate-fade-in-up" style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}>
+      {profile?.financialGoal && profile.financialGoalAmount && profile.financialGoalAmount > 0 && (
+          <div className="animate-fade-in-up" style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}>
+              <FinancialGoalCard 
+                  profile={profile}
+                  transactions={transactions} 
+              />
+          </div>
+      )}
+
+      <div className="animate-fade-in-up" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}>
         <SpendingInsights insights={spendingInsights} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 animate-fade-in-up" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}>
+        <div className="lg:col-span-2 animate-fade-in-up" style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}>
           <SpendingChart transactions={transactions} />
         </div>
-        <div className="lg:col-span-1 animate-fade-in-up" style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}>
+        <div className="lg:col-span-1 animate-fade-in-up" style={{ animationDelay: '400ms', animationFillMode: 'backwards' }}>
           <CategorySpendingChart transactions={transactions} />
         </div>
       </div>
