@@ -1,9 +1,11 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Store, History, Settings } from 'lucide-react';
+import { LayoutDashboard, Store, History, Settings, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUserProfile } from '@/lib/hooks/use-user-profile';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -14,11 +16,17 @@ const navItems = [
 
 export function MobileBottomNav() {
   const pathname = usePathname();
+  const { profile } = useUserProfile();
+
+  const allNavItems = [...navItems];
+  if (profile?.isAdmin) {
+    allNavItems.push({ href: '/admin/dashboard', icon: Shield, label: 'Admin' });
+  }
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-card border-t z-50">
       <div className="flex h-full items-center justify-around">
-        {navItems.map(item => {
+        {allNavItems.map(item => {
           const isActive = pathname.startsWith(item.href);
           return (
             <Link

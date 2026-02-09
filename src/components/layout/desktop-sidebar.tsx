@@ -1,11 +1,11 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Store, History, Settings, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, Store, History, Settings, LogOut, User, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { buttonVariants, Button } from '@/components/ui/button';
-import { useUser } from '@/lib/hooks/use-user';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
 import { Skeleton } from '../ui/skeleton';
 import { Avatar, AvatarFallback } from '../ui/avatar';
@@ -29,10 +29,15 @@ export function DesktopSidebar() {
     router.push('/login');
   };
 
+  const allNavItems = [...navItems];
+  if (profile?.isAdmin) {
+    allNavItems.push({ href: '/admin/dashboard', icon: Shield, label: 'Admin' });
+  }
+
   return (
     <aside className="hidden md:flex w-64 border-r flex-col">
       <nav className="flex flex-col gap-2 p-4">
-        {navItems.map(item => {
+        {allNavItems.map(item => {
           const isActive = pathname.startsWith(item.href);
           return (
             <Link

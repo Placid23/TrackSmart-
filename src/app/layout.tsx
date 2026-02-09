@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -5,6 +6,7 @@ import { ThemeProvider } from '@/lib/providers/theme-provider';
 import { FirebaseProvider } from '@/lib/providers/firebase-provider';
 import { UserProvider } from '@/lib/hooks/use-user';
 import { AppGuard } from '@/components/layout/app-guard';
+import { UserProfileProvider } from '@/lib/providers/user-profile-provider';
 
 export const metadata: Metadata = {
   title: 'TrackSmart+',
@@ -44,10 +46,10 @@ export default function RootLayout({
         >
           <FirebaseProvider>
             <UserProvider>
-              <AppGuard>
-                {children}
-              </AppGuard>
-              <Toaster />
+              <UserProfileProvider>
+                <AppGuard>{children}</AppGuard>
+                <Toaster />
+              </UserProfileProvider>
             </UserProvider>
           </FirebaseProvider>
         </ThemeProvider>
