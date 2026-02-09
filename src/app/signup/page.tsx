@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -63,6 +63,14 @@ export default function SignUpPage() {
   const { createProfile } = useUserProfile();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [typingDone, setTypingDone] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTypingDone(true);
+    }, 2000); // Typing animation duration
+    return () => clearTimeout(timer);
+  }, []);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -157,133 +165,152 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 overflow-hidden">
       <Card className="w-full max-w-lg animate-fade-in-up">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl text-primary">
-            Welcome to TrackSmart+
-          </CardTitle>
-          <CardDescription>
+           <div className="h-8 mb-2 flex justify-center">
+              <CardTitle className={`font-headline text-2xl text-primary inline-block ${typingDone ? 'animate-subtle-bounce' : 'w-[23ch] animate-typing overflow-hidden whitespace-nowrap border-r-2 border-r-primary animate-caret-blink'}`}>
+                  Welcome to TrackSmart+
+              </CardTitle>
+            </div>
+          <CardDescription className="text-center animate-fade-in-up" style={{ animationDelay: '2.1s' }}>
             Let's set up your profile to get started with smart financial tracking.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="animate-fade-in-up" style={{ animationDelay: '2.2s' }}>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Address</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
-                     <FormDescription>Must be at least 6 characters long.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="studentId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Student ID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., C00123456" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="monthlyAllowance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Monthly Allowance (₦)</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="e.g., 50000" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      This is your total budget for the month.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="mealPlan"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Meal Plan Selection</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.3s' }}>
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email Address</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="you@example.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                 </div>
+                 <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.4s' }}>
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="••••••••" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                 </div>
+              </div>
+              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.5s' }}>
+                <FormField
+                  control={form.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your meal plan" />
-                        </SelectTrigger>
+                        <Input placeholder="e.g., John Doe" {...field} />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="two-meal">Two-Meal Plan (₦4,000/day coupon)</SelectItem>
-                        <SelectItem value="three-meal">Three-Meal Plan (₦6,000/day coupon)</SelectItem>
-                        <SelectItem value="pay-to-eat">Pay to Eat (No daily coupon)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>This determines your daily cafeteria coupon value.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="financialGoal"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Primary Financial Goal</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Save for a new laptop" {...field} />
-                    </FormControl>
-                    <FormDescription>Your goal helps us give you better advice.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || isGoogleLoading}>
-                {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Account
-              </Button>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.6s' }}>
+                <FormField
+                  control={form.control}
+                  name="studentId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Student ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., C00123456" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.7s' }}>
+                <FormField
+                  control={form.control}
+                  name="monthlyAllowance"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Monthly Allowance (₦)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g., 50000" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        This is your total budget for the month.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.8s' }}>
+                <FormField
+                  control={form.control}
+                  name="mealPlan"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Meal Plan Selection</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your meal plan" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="two-meal">Two-Meal Plan (₦4,000/day coupon)</SelectItem>
+                          <SelectItem value="three-meal">Three-Meal Plan (₦6,000/day coupon)</SelectItem>
+                          <SelectItem value="pay-to-eat">Pay to Eat (No daily coupon)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>This determines your daily cafeteria coupon value.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.9s' }}>
+                 <FormField
+                  control={form.control}
+                  name="financialGoal"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Primary Financial Goal</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Save for a new laptop" {...field} />
+                      </FormControl>
+                      <FormDescription>Your goal helps us give you better advice.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="pt-2 animate-fade-in-up" style={{ animationDelay: '3.0s' }}>
+                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || isGoogleLoading}>
+                  {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Create Account
+                </Button>
+              </div>
             </form>
           </Form>
 
-            <div className="relative my-6">
+            <div className="relative my-6 animate-fade-in-up" style={{ animationDelay: '3.1s' }}>
                 <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
                 </div>
@@ -294,20 +321,22 @@ export default function SignUpPage() {
                 </div>
             </div>
 
-            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={form.formState.isSubmitting || isGoogleLoading}>
-                {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
-                Sign up with Google
-            </Button>
+            <div className="animate-fade-in-up" style={{ animationDelay: '3.2s' }}>
+              <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={form.formState.isSubmitting || isGoogleLoading}>
+                  {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
+                  Sign up with Google
+              </Button>
+            </div>
 
 
-            <div className="mt-6 text-center text-sm">
-            <p className="text-muted-foreground">
-              Already have an account?{' '}
-              <Link href="/login" className="font-medium text-primary hover:underline">
-                Log In
-              </Link>
-            </p>
-          </div>
+            <div className="mt-6 text-center text-sm animate-fade-in-up" style={{ animationDelay: '3.3s' }}>
+              <p className="text-muted-foreground">
+                Already have an account?{' '}
+                <Link href="/login" className="font-medium text-primary hover:underline">
+                  Log In
+                </Link>
+              </p>
+            </div>
         </CardContent>
       </Card>
     </div>

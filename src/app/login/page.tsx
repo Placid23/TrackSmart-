@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -44,6 +44,14 @@ export default function LoginPage() {
   const auth = useAuth();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [typingDone, setTypingDone] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTypingDone(true);
+    }, 2000); // Typing animation duration
+    return () => clearTimeout(timer);
+  }, []);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -96,53 +104,61 @@ export default function LoginPage() {
 
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 overflow-hidden">
       <Card className="w-full max-w-md animate-fade-in-up">
         <CardHeader className="text-center">
-          <CardTitle className="font-headline text-2xl text-primary">
-            Welcome Back to TrackSmart+
-          </CardTitle>
-          <CardDescription>
+          <div className="h-8 mb-2 flex justify-center">
+             <CardTitle className={`font-headline text-2xl text-primary inline-block ${typingDone ? 'animate-subtle-bounce' : 'w-[29ch] animate-typing overflow-hidden whitespace-nowrap border-r-2 border-r-primary animate-caret-blink'}`}>
+                Welcome Back to TrackSmart+
+            </CardTitle>
+          </div>
+          <CardDescription className="animate-fade-in-up" style={{ animationDelay: '2.1s' }}>
             Sign in to access your financial dashboard.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="animate-fade-in-up" style={{ animationDelay: '2.2s' }}>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || isGoogleLoading}>
-                {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Log In
-              </Button>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.3s' }}>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="you@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '2.4s' }}>
+                 <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="pt-2 animate-fade-in-up" style={{ animationDelay: '2.5s' }}>
+                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || isGoogleLoading}>
+                  {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Log In
+                </Button>
+              </div>
             </form>
           </Form>
 
-          <div className="relative my-6">
+          <div className="relative my-6 animate-fade-in-up" style={{ animationDelay: '2.6s' }}>
             <Separator />
             <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
@@ -154,13 +170,15 @@ export default function LoginPage() {
             </div>
            </div>
 
-            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={form.formState.isSubmitting || isGoogleLoading}>
-                {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
-                Sign in with Google
-            </Button>
+            <div className="animate-fade-in-up" style={{ animationDelay: '2.7s' }}>
+              <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={form.formState.isSubmitting || isGoogleLoading}>
+                  {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
+                  Sign in with Google
+              </Button>
+            </div>
 
 
-          <div className="mt-6 text-center text-sm">
+          <div className="mt-6 text-center text-sm animate-fade-in-up" style={{ animationDelay: '2.8s' }}>
             <p className="text-muted-foreground">
               Don&apos;t have an account?{' '}
               <Link href="/signup" className="font-medium text-primary hover:underline">
