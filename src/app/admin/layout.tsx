@@ -1,16 +1,19 @@
-
 'use client';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import React, { useEffect } from 'react';
+import Link from 'next/link';
 
 // Basic admin header for now
 function AdminHeader() {
     return (
         <header className="sticky top-0 z-40 w-full border-b bg-card">
-            <div className="container mx-auto flex h-16 items-center px-4">
+            <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <h1 className="font-headline text-xl font-bold text-primary">Admin Dashboard</h1>
+                <Link href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-primary">
+                  Return to Student View
+                </Link>
             </div>
         </header>
     );
