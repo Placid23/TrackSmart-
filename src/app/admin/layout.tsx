@@ -6,7 +6,7 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { PanelLeft } from 'lucide-react';
 
 
@@ -20,7 +20,10 @@ function AdminHeader() {
                   <span className="sr-only">Toggle Menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="sm:max-w-xs">
+              <SheetContent side="left" className="sm:max-w-xs p-0">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Admin Menu</SheetTitle>
+                </SheetHeader>
                 <AdminSidebar />
               </SheetContent>
             </Sheet>
