@@ -120,6 +120,8 @@ export default function ProfilePage() {
                 ...data,
                 financialGoalAmount: data.financialGoalAmount || 0,
             });
+            // Redirect after creating profile
+            router.push('/dashboard');
         }
     } catch (error: any) {
         console.error("Profile submission error", error);
@@ -256,10 +258,17 @@ export default function ProfilePage() {
               />
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {profile ? 'Update Profile' : 'Save Profile'}
+                {profile ? 'Update Profile' : 'Save Profile & Continue'}
               </Button>
             </form>
           </Form>
+
+          {profile && (
+             <Button variant="secondary" className="w-full mt-4" onClick={() => router.push('/dashboard')}>
+                Return to Dashboard
+             </Button>
+          )}
+
           <Button variant="outline" className="w-full mt-4" onClick={handleLogout} disabled={isSubmitting}>
             <LogOut className="mr-2 h-4 w-4" />
             Logout
