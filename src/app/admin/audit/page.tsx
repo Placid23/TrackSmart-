@@ -135,13 +135,13 @@ export default function AuditLogPage() {
             {placeholderLogs.map((log, index) => (
                 <Card key={index}>
                     <CardContent className="p-4 space-y-2">
-                        <div className="flex justify-between items-start">
+                        <div className="flex justify-between items-start gap-4">
                             <p className="font-semibold text-primary">{log.action}</p>
-                            <p className="text-xs text-muted-foreground font-mono">{log.timestamp}</p>
+                            <p className="text-xs text-muted-foreground font-mono text-right">{log.timestamp}</p>
                         </div>
-                        <div className="text-sm">
-                            <p><span className="font-medium">Target:</span> {log.target}</p>
-                            <p><span className="font-medium">Admin:</span> {log.admin}</p>
+                        <div className="text-sm space-y-0.5">
+                            <p><span className="font-medium text-foreground/80">Target:</span> {log.target}</p>
+                            <p><span className="font-medium text-foreground/80">Admin:</span> {log.admin}</p>
                         </div>
                         <p className="text-sm text-muted-foreground pt-1">{log.details}</p>
                     </CardContent>
