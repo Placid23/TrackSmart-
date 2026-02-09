@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -104,9 +105,9 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <Select defaultValue="last-30-days">
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Select date range" />
           </SelectTrigger>
           <SelectContent>
@@ -117,7 +118,7 @@ export default function AnalyticsPage() {
           </SelectContent>
         </Select>
         <Select value={selectedVendor} onValueChange={setSelectedVendor}>
-          <SelectTrigger className="w-[240px]">
+          <SelectTrigger className="w-full sm:w-[240px]">
             <SelectValue placeholder="Select a vendor" />
           </SelectTrigger>
           <SelectContent>
@@ -131,7 +132,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -284,41 +285,63 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      {/* Recent Orders Table */}
-      <Card>
-        <CardHeader>
+      {/* Recent Orders Section */}
+      <div>
+         <CardHeader className="px-0">
           <CardTitle>Recent Orders</CardTitle>
           <CardDescription>
             A list of the most recent orders from {selectedVendor}.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {placeholderAnalyticsData.recentOrders.map(order => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>{order.user}</TableCell>
-                  <TableCell>{order.date}</TableCell>
-                  <TableCell>{order.items}</TableCell>
-                  <TableCell className="text-right">
-                    ₦{order.amount.toLocaleString()}
-                  </TableCell>
+
+        {/* Mobile View */}
+        <div className="space-y-4 md:hidden">
+          {placeholderAnalyticsData.recentOrders.map(order => (
+            <Card key={`${order.id}-mobile`}>
+              <CardContent className="p-4 flex items-start justify-between gap-4">
+                <div className="flex-grow space-y-1">
+                  <p className="font-semibold">{order.user}</p>
+                  <p className="text-xs text-muted-foreground">{order.id} &middot; {order.date}</p>
+                   <p className="text-sm text-muted-foreground">{order.items} item(s)</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="font-bold text-lg whitespace-nowrap">₦{order.amount.toLocaleString()}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Desktop View */}
+        <Card className="hidden md:block">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order ID</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Items</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {placeholderAnalyticsData.recentOrders.map(order => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-medium">{order.id}</TableCell>
+                    <TableCell>{order.user}</TableCell>
+                    <TableCell>{order.date}</TableCell>
+                    <TableCell>{order.items}</TableCell>
+                    <TableCell className="text-right">
+                      ₦{order.amount.toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
