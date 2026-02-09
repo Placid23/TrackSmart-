@@ -33,8 +33,8 @@ import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 
 const profileFormSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  email: z.string().email({ message: 'Please enter a valid email.' }).optional().or(z.literal('')),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }).optional().or(z.literal('')),
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
   studentId: z.string().min(1, { message: 'Student ID is required.' }),
   monthlyAllowance: z.coerce
@@ -79,6 +79,14 @@ export default function SignUpPage() {
   });
 
   async function onSubmit(data: ProfileFormValues) {
+    if (!data.email || !data.password) {
+        toast({
+            variant: 'destructive',
+            title: 'Missing Fields',
+            description: 'Email and password are required for standard sign-up.',
+        });
+        return;
+    }
     const { email, password, ...profileData } = data;
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -102,18 +110,45 @@ export default function SignUpPage() {
   }
 
   async function handleGoogleSignIn() {
+    const fieldsToValidate: (keyof ProfileFormValues)[] = [
+      'fullName', 'studentId', 'monthlyAllowance', 'mealPlan', 'financialGoal'
+    ];
+    const isValid = await form.trigger(fieldsToValidate);
+
+    if (!isValid) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please fill out your profile details before signing up with Google.",
+      });
+      return;
+    }
+
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-        await signInWithPopup(auth, provider);
+        const userCredential = await signInWithPopup(auth, provider);
+        const user = userCredential.user;
+        const profileData = form.getValues();
+        
+        await createProfile({
+          uid: user.uid,
+          email: user.email!,
+          fullName: profileData.fullName,
+          studentId: profileData.studentId,
+          monthlyAllowance: profileData.monthlyAllowance,
+          mealPlan: profileData.mealPlan,
+          financialGoal: profileData.financialGoal,
+        });
+
         router.push('/dashboard');
     } catch (error: any) {
         if (error.code !== 'auth/popup-closed-by-user') {
             console.error("Google sign-in error", error);
             toast({
                 variant: "destructive",
-                title: "Google Sign-In Failed",
-                description: error.message || "Could not sign in with Google.",
+                title: "Google Sign-Up Failed",
+                description: error.message || "Could not sign up with Google.",
             });
         }
     } finally {
