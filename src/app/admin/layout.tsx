@@ -2,7 +2,7 @@
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
 import { Button } from '@/components/ui/button';
@@ -11,9 +11,11 @@ import { PanelLeft } from 'lucide-react';
 
 
 function AdminHeader() {
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+
     return (
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-             <Sheet>
+             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
                 <Button size="icon" variant="outline" className="sm:hidden">
                   <PanelLeft className="h-5 w-5" />
@@ -24,7 +26,7 @@ function AdminHeader() {
                 <SheetHeader className="sr-only">
                   <SheetTitle>Admin Menu</SheetTitle>
                 </SheetHeader>
-                <AdminSidebar />
+                <AdminSidebar onLinkClick={() => setIsSheetOpen(false)} />
               </SheetContent>
             </Sheet>
             <div className="flex-1">

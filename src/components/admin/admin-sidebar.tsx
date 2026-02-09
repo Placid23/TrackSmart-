@@ -24,13 +24,13 @@ const navItems = [
   { href: '/admin/audit', icon: ClipboardList, label: 'Audit Logs' },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
   const pathname = usePathname();
 
   return (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
       <div className="flex items-center gap-2 p-4">
-        <Link href="/admin/dashboard" className="flex items-center gap-2">
+        <Link href="/admin/dashboard" className="flex items-center gap-2" onClick={onLinkClick}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -55,6 +55,7 @@ export function AdminSidebar() {
           <Link
             key={item.href}
             href={item.href}
+            onClick={onLinkClick}
             className={cn(
               buttonVariants({ variant: isActive ? 'secondary' : 'ghost', size: 'default' }),
               'justify-start gap-3'
