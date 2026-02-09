@@ -16,6 +16,7 @@ import { Sun, Moon, Laptop, Loader2, UploadCloud, User } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/lib/providers/firebase-provider';
 
 const personalInfoSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
@@ -27,6 +28,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
+  const auth = useAuth();
   const [mounted, setMounted] = useState(false);
   const { profile, updateProfile, isLoading: isProfileLoading } = useUserProfile();
   
@@ -88,7 +90,7 @@ export default function SettingsPage() {
   const handleDeleteAccount = () => {
     if (window.confirm('Are you sure you want to delete your account? This action is irreversible.')) {
       window.localStorage.clear();
-      router.push('/profile');
+      auth.signOut();
     }
   };
 
