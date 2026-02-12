@@ -7,6 +7,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Users, Receipt, DollarSign, Activity, Loader2 } from 'lucide-react';
 import type { Transaction } from '@/lib/types';
 import { isToday } from 'date-fns';
+import { useUserProfile } from '@/lib/hooks/use-user-profile';
+import { useToast } from '@/hooks/use-toast';
 
 interface AdminStats {
   totalUsers: number;
@@ -15,60 +17,90 @@ interface AdminStats {
   totalOrders: number;
 }
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export default function AdminDashboardPage() {
   const firestore = useFirestore();
+  const { profile } = useUserProfile();
+  const { toast } = useToast();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchAdminStats() {
-      if (!firestore) return;
-
-      try {
-        // Fetch all users to get the total count
-        const usersCollection = collection(firestore, 'users');
-        const usersSnapshot = await getDocs(usersCollection);
-        const totalUsers = usersSnapshot.size;
-
-        // Fetch all transactions from all users using a collection group query
-        const transactionsGroup = collectionGroup(firestore, 'transactions');
-        const transactionsSnapshot = await getDocs(transactionsGroup);
-        
-        const allTransactions = transactionsSnapshot.docs.map(doc => doc.data() as Transaction);
-        
-        const totalOrders = allTransactions.length;
-        const totalRevenue = allTransactions.reduce((sum, t) => sum + t.amount, 0);
-
-        // Calculate active users today (defined as users who made a transaction today)
-        const activeUserIds = new Set<string>();
-        transactionsSnapshot.forEach(doc => {
-          const transactionDate = new Date(doc.data().date);
-          if (isToday(transactionDate)) {
-            // The path is structured as 'users/{userId}/transactions/{transactionId}'
-            const pathParts = doc.ref.path.split('/');
-            if (pathParts.length >= 2 && pathParts[0] === 'users') {
-              const userId = pathParts[1];
-              activeUserIds.add(userId);
-            }
-          }
-        });
-        const activeUsersToday = activeUserIds.size;
-
-        setStats({
-          totalUsers,
-          activeUsersToday,
-          totalRevenue,
-          totalOrders,
-        });
-      } catch (error) {
-        console.error("Failed to fetch admin stats:", error);
-      } finally {
+      if (!firestore || !profile?.isAdmin) {
         setIsLoading(false);
+        return;
       }
+
+      let attempts = 0;
+      const maxAttempts = 5;
+      
+      while(attempts < maxAttempts) {
+        try {
+          // Fetch all users to get the total count
+          const usersCollection = collection(firestore, 'users');
+          const usersSnapshot = await getDocs(usersCollection);
+          const totalUsers = usersSnapshot.size;
+
+          // Fetch all transactions from all users using a collection group query
+          const transactionsGroup = collectionGroup(firestore, 'transactions');
+          const transactionsSnapshot = await getDocs(transactionsGroup);
+          
+          const allTransactions = transactionsSnapshot.docs.map(doc => doc.data() as Transaction);
+          
+          const totalOrders = allTransactions.length;
+          const totalRevenue = allTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+          // Calculate active users today (defined as users who made a transaction today)
+          const activeUserIds = new Set<string>();
+          transactionsSnapshot.forEach(doc => {
+            const transactionDate = new Date(doc.data().date);
+            if (isToday(transactionDate)) {
+              // The path is structured as 'users/{userId}/transactions/{transactionId}'
+              const pathParts = doc.ref.path.split('/');
+              if (pathParts.length >= 2 && pathParts[0] === 'users') {
+                const userId = pathParts[1];
+                activeUserIds.add(userId);
+              }
+            }
+          });
+          const activeUsersToday = activeUserIds.size;
+
+          setStats({
+            totalUsers,
+            activeUsersToday,
+            totalRevenue,
+            totalOrders,
+          });
+
+          // If successful, break the loop
+          break;
+        } catch (error: any) {
+          if (error.code === 'permission-denied') {
+            attempts++;
+            if (attempts >= maxAttempts) {
+              console.error("Failed to fetch admin stats after multiple attempts:", error);
+              toast({
+                  variant: 'destructive',
+                  title: 'Permission Sync Failed',
+                  description: 'Could not sync admin permissions. Please try refreshing the page.',
+              });
+            } else {
+              await sleep(1000 * attempts);
+            }
+          } else {
+            console.error("Failed to fetch admin stats:", error);
+            // Break for non-permission errors
+            break;
+          }
+        } 
+      }
+      setIsLoading(false);
     }
 
     fetchAdminStats();
-  }, [firestore]);
+  }, [firestore, profile, toast]);
 
   if (isLoading) {
     return (
