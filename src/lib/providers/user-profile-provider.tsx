@@ -40,15 +40,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       profileRef,
       (docSnapshot) => {
         if (docSnapshot.exists()) {
-          const data = docSnapshot.data() as UserProfile;
-          // If the isAdmin field doesn't exist, this user is likely the first admin.
-          // Let's grant them the permission. This will only run once per user.
-          if (data.isAdmin === undefined) {
-            updateDoc(profileRef, { isAdmin: true });
-            // The snapshot will re-fire with the updated data, so we don't set state here.
-          } else {
-            setProfile(data);
-          }
+          setProfile(docSnapshot.data() as UserProfile);
         } else {
           setProfile(null);
         }
@@ -69,12 +61,9 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     async (data: UserProfile) => {
       if (!firestore || !data.uid) return;
       
-      // The `data` object from signup will not have `isAdmin` defined.
-      // We create the profile document without this field, so that the
-      // onSnapshot listener logic can then detect it's missing and
-      // promote the first user to an admin.
       const profileToSave: UserProfile = {
         ...data,
+        isAdmin: false, // Explicitly set new users to be non-admins.
         notificationSettings: data.notificationSettings || {
           mealReminders: true,
           paymentAlerts: true,
@@ -87,9 +76,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       const userDoc = doc(firestore, 'users', data.uid);
       await setDoc(userDoc, profileToSave);
       
-      // We don't set the local profile state here because we want to rely
-      // on the onSnapshot listener to provide the single source of truth,
-      // including the soon-to-be-added `isAdmin` field.
+      // The onSnapshot listener will pick up the new profile data.
     },
     [firestore]
   );
