@@ -38,9 +38,8 @@ service cloud.firestore {
 
     // Rules for user transactions (subcollection)
     match /users/{userId}/transactions/{transactionId} {
-      // A user can read and write their own transactions.
-      // Admins are covered by the collection group rule below for reads.
-      allow read, write: if isOwner(userId);
+      // A user can read/write their own transactions. Admins can also read/write any transaction.
+      allow read, write: if isOwner(userId) || isAdmin();
     }
 
     // Rule for the 'transactions' collection group query used by the admin dashboard.
