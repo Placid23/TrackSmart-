@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useFirestore } from '@/lib/providers/firebase-provider';
-import { collection, collectionGroup, getDocs } from 'firebase/firestore';
+import { collection, collectionGroup, getDocs, query, where } from 'firebase/firestore';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Users, Receipt, DollarSign, Activity, Loader2 } from 'lucide-react';
 import type { Transaction } from '@/lib/types';
-import { isToday } from 'date-fns';
+import { isToday, subDays } from 'date-fns';
 import { useUserProfile } from '@/lib/hooks/use-user-profile';
 import { useToast } from '@/hooks/use-toast';
 
@@ -43,9 +43,11 @@ export default function AdminDashboardPage() {
           const usersSnapshot = await getDocs(usersCollection);
           const totalUsers = usersSnapshot.size;
 
-          // Fetch all transactions from all users using a collection group query
+          // Fetch all transactions from all users using a collection group query for the last 30 days
+          const thirtyDaysAgo = subDays(new Date(), 30);
           const transactionsGroup = collectionGroup(firestore, 'transactions');
-          const transactionsSnapshot = await getDocs(transactionsGroup);
+          const recentTransactionsQuery = query(transactionsGroup, where('date', '>=', thirtyDaysAgo.toISOString()));
+          const transactionsSnapshot = await getDocs(recentTransactionsQuery);
           
           const allTransactions = transactionsSnapshot.docs.map(doc => doc.data() as Transaction);
           
@@ -91,6 +93,14 @@ export default function AdminDashboardPage() {
             }
           } else {
             console.error("Failed to fetch admin stats:", error);
+             if (error.code === 'failed-precondition') {
+                toast({
+                    variant: 'destructive',
+                    title: 'Database Index Required',
+                    description: "Your database needs an index for admin queries. Please check the browser's developer console for a link to create it.",
+                    duration: 15000,
+                });
+            }
             // Break for non-permission errors
             break;
           }
@@ -117,7 +127,7 @@ export default function AdminDashboardPage() {
           Dashboard Overview
         </h1>
         <p className="text-muted-foreground">
-          A high-level summary of all activity on TrackSmart+.
+          A high-level summary of activity on TrackSmart+.
         </p>
       </div>
 
@@ -144,22 +154,22 @@ export default function AdminDashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Revenue (Last 30d)</CardTitle>
             <DollarSign className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">₦{stats?.totalRevenue.toLocaleString() ?? '0'}</p>
-            <p className="text-xs text-muted-foreground">Total transaction value</p>
+            <p className="text-xs text-muted-foreground">Total transaction value in last 30 days</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders Placed</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Orders (Last 30d)</CardTitle>
             <Receipt className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
              <p className="text-3xl font-bold">{stats?.totalOrders.toLocaleString() ?? '0'}</p>
-            <p className="text-xs text-muted-foreground">Total orders on the platform</p>
+            <p className="text-xs text-muted-foreground">Total orders in the last 30 days</p>
           </CardContent>
         </Card>
       </div>
