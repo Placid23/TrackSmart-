@@ -40,7 +40,22 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       profileRef,
       (docSnapshot) => {
         if (docSnapshot.exists()) {
-          setProfile(docSnapshot.data() as UserProfile);
+          const profileData = docSnapshot.data() as UserProfile;
+          
+          // --- Self-healing Admin Logic ---
+          // This ensures the designated admin email always has admin rights.
+          // IMPORTANT: Change this email to your own to grant yourself admin access.
+          const designatedAdminEmail = 'admin@example.com'; 
+          if (profileData.email === designatedAdminEmail && profileData.isAdmin !== true) {
+            // Found the designated admin but they don't have the flag yet.
+            // Update the profile in the background. The listener will then get the updated profile.
+            updateDoc(profileRef, { isAdmin: true });
+            // We don't set the local profile state here to avoid a flash of incorrect permissions.
+            // We'll wait for the next snapshot event which will have the correct `isAdmin: true` flag.
+          } else {
+             setProfile(profileData);
+          }
+
         } else {
           setProfile(null);
         }
@@ -63,7 +78,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       
       const profileToSave: UserProfile = {
         ...data,
-        isAdmin: false, // Explicitly set new users to be non-admins.
+        isAdmin: false, // All new users are non-admins by default.
         notificationSettings: data.notificationSettings || {
           mealReminders: true,
           paymentAlerts: true,
