@@ -41,21 +41,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       (docSnapshot) => {
         if (docSnapshot.exists()) {
           const profileData = docSnapshot.data() as UserProfile;
-          
-          // --- Self-healing Admin Logic ---
-          // This ensures the designated admin email always has admin rights.
-          // IMPORTANT: Change this email to your own to grant yourself admin access.
-          const designatedAdminEmail = 'admin@example.com'; 
-          if (profileData.email === designatedAdminEmail && profileData.isAdmin !== true) {
-            // Found the designated admin but they don't have the flag yet.
-            // Update the profile in the background. The listener will then get the updated profile.
-            updateDoc(profileRef, { isAdmin: true });
-            // We don't set the local profile state here to avoid a flash of incorrect permissions.
-            // We'll wait for the next snapshot event which will have the correct `isAdmin: true` flag.
-          } else {
-             setProfile(profileData);
-          }
-
+          setProfile(profileData);
         } else {
           setProfile(null);
         }
@@ -100,8 +86,8 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     async (data: Partial<UserProfile>) => {
       if (!user || !firestore) return;
       const profileRef = doc(firestore, 'users', user.uid);
+      // The new security rules will prevent the client from changing the isAdmin field here.
       await updateDoc(profileRef, data);
-      setProfile((prev) => (prev ? { ...prev, ...data } : null) as UserProfile);
     },
     [user, firestore]
   );
