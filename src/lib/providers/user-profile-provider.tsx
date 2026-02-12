@@ -68,9 +68,13 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   const createProfile = useCallback(
     async (data: UserProfile) => {
       if (!firestore || !data.uid) return;
+      
+      // The `data` object from signup will not have `isAdmin` defined.
+      // We create the profile document without this field, so that the
+      // onSnapshot listener logic can then detect it's missing and
+      // promote the first user to an admin.
       const profileToSave: UserProfile = {
         ...data,
-        isAdmin: data.isAdmin || false,
         notificationSettings: data.notificationSettings || {
           mealReminders: true,
           paymentAlerts: true,
@@ -79,9 +83,13 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
         },
         status: data.status || 'Active',
       };
+      
       const userDoc = doc(firestore, 'users', data.uid);
       await setDoc(userDoc, profileToSave);
-      setProfile(profileToSave);
+      
+      // We don't set the local profile state here because we want to rely
+      // on the onSnapshot listener to provide the single source of truth,
+      // including the soon-to-be-added `isAdmin` field.
     },
     [firestore]
   );
