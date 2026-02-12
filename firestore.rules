@@ -1,0 +1,33 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if the user is an authenticated admin.
+    function isAdmin() {
+      // Check if the user is authenticated and if their profile has isAdmin set to true.
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Rule for user profiles
+    match /users/{userId} {
+      // Users can get, create, and update their own profile.
+      allow get, create, update: if request.auth.uid == userId;
+      
+      // Admins can list all users for the user management page.
+      allow list: if isAdmin();
+    }
+
+    // Rule for a user's own transactions
+    match /users/{userId}/transactions/{transactionId} {
+      // Users can read and write their own transactions.
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    // Rule for the 'transactions' collection group query used by admins
+    match /{path=**}/transactions/{transactionId} {
+      // Admins can read any document in any 'transactions' subcollection.
+      allow read: if isAdmin();
+    }
+  }
+}
