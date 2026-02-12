@@ -4,41 +4,48 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function signedIn() { 
-      return request.auth != null; 
+    // Helper functions
+    function signedIn() {
+      return request.auth != null;
     }
 
     function isOwner(userId) {
       return signedIn() && request.auth.uid == userId;
     }
-    
+
+    // isAdmin function checks the user's document for the 'isAdmin' flag.
+    // This is the single source of truth for admin status.
     function isAdmin() {
       return signedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
+    // Rules for the 'users' collection
     match /users/{userId} {
-      // ANY signed in user can CREATE their own user doc.
-      // The UID in the path must match the UID in their auth token.
-      allow create: if isOwner(userId);
-      
-      // ANY signed in user can READ their own user doc.
-      allow get: if isOwner(userId);
+      // READ: A user can get their own doc. An admin can get any doc and list all docs.
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
 
-      // A user can UPDATE their own profile, but CANNOT make themselves an admin.
-      // An admin can update any user's profile (including the isAdmin flag).
+      // CREATE: A user can create their own document.
+      allow create: if isOwner(userId);
+
+      // UPDATE: A user can update their own doc (but not isAdmin field).
+      // An admin can update any user's doc (including isAdmin).
       allow update: if (isOwner(userId) && request.resource.data.isAdmin == resource.data.isAdmin) || isAdmin();
 
-      // Only an ADMIN can LIST or DELETE users.
-      allow list, delete: if isAdmin();
+      // DELETE: Only admins can delete user documents.
+      allow delete: if isAdmin();
     }
 
+    // Rules for user transactions (subcollection)
     match /users/{userId}/transactions/{transactionId} {
-      // A user can read and write their OWN transactions.
+      // A user can read and write their own transactions.
+      // Admins are covered by the collection group rule below for reads.
       allow read, write: if isOwner(userId);
     }
 
-    // This collection group query allows an admin to read all transactions across all users.
+    // Rule for the 'transactions' collection group query used by the admin dashboard.
     match /{path=**}/transactions/{transactionId} {
+      // Admin can read any transaction from any user.
       allow read: if isAdmin();
     }
   }
