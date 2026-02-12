@@ -40,7 +40,15 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       profileRef,
       (docSnapshot) => {
         if (docSnapshot.exists()) {
-          setProfile(docSnapshot.data() as UserProfile);
+          const data = docSnapshot.data() as UserProfile;
+          // If the isAdmin field doesn't exist, this user is likely the first admin.
+          // Let's grant them the permission. This will only run once per user.
+          if (data.isAdmin === undefined) {
+            updateDoc(profileRef, { isAdmin: true });
+            // The snapshot will re-fire with the updated data, so we don't set state here.
+          } else {
+            setProfile(data);
+          }
         } else {
           setProfile(null);
         }
