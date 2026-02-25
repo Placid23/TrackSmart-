@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Users, Receipt, DollarSign, Activity, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
-import { collection, collectionGroup, getDocs, query, where } from 'firebase/firestore';
+import { collection, collectionGroup, getDocs, query, where, limit } from 'firebase/firestore';
 import { useFirestore } from '@/lib/providers/firebase-provider';
 import { startOfMonth, startOfDay } from 'date-fns';
 import { errorEmitter } from '@/lib/error-emitter';
@@ -25,78 +25,78 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const fetchStats = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        // 1. Total Users
-        const usersRef = collection(firestore, 'users');
-        const usersSnapshot = await getDocs(usersRef).catch(err => {
-          if (err.code === 'permission-denied' || err.message?.includes('permissions')) {
-            const permError = new FirestorePermissionError({
-              path: usersRef.path,
-              operation: 'list'
-            });
-            errorEmitter.emit('permission-error', permError);
-            throw permError;
-          }
-          throw err;
-        });
-        const totalUsers = usersSnapshot.size;
+      // 1. Total Users (Limit to 500 for safety in MVP)
+      const usersRef = collection(firestore, 'users');
+      const usersSnapshot = await getDocs(query(usersRef, limit(500))).catch(err => {
+        if (err.code === 'permission-denied' || err.message?.includes('permissions')) {
+          const permError = new FirestorePermissionError({
+            path: usersRef.path,
+            operation: 'list'
+          });
+          errorEmitter.emit('permission-error', permError);
+          throw permError;
+        }
+        throw err;
+      });
+      const totalUsers = usersSnapshot.size;
 
-        // 2. Transactions (Last 30 Days)
-        const thirtyDaysAgo = startOfMonth(new Date());
-        const transactionsRef = collectionGroup(firestore, 'transactions');
-        const transactionsQuery = query(
-          transactionsRef,
-          where('date', '>=', thirtyDaysAgo.toISOString())
-        );
-        
-        const transactionsSnapshot = await getDocs(transactionsQuery).catch(err => {
-          if (err.code === 'permission-denied' || err.message?.includes('permissions')) {
-            const permError = new FirestorePermissionError({
-              path: 'collectionGroup(transactions)',
-              operation: 'list'
-            });
-            errorEmitter.emit('permission-error', permError);
-            throw permError;
-          }
-          throw err;
-        });
+      // 2. Transactions (Last 30 Days)
+      const thirtyDaysAgo = startOfMonth(new Date());
+      const transactionsRef = collectionGroup(firestore, 'transactions');
+      const transactionsQuery = query(
+        transactionsRef,
+        where('date', '>=', thirtyDaysAgo.toISOString())
+      );
+      
+      const transactionsSnapshot = await getDocs(transactionsQuery).catch(err => {
+        if (err.code === 'permission-denied' || err.message?.includes('permissions')) {
+          const permError = new FirestorePermissionError({
+            path: 'collectionGroup(transactions)',
+            operation: 'list'
+          });
+          errorEmitter.emit('permission-error', permError);
+          throw permError;
+        }
+        throw err;
+      });
 
-        let totalRevenue = 0;
-        let totalOrders = transactionsSnapshot.size;
-        const activeUsersTodaySet = new Set<string>();
-        const todayStr = startOfDay(new Date()).toISOString();
+      let totalRevenue = 0;
+      let totalOrders = transactionsSnapshot.size;
+      const activeUsersTodaySet = new Set<string>();
+      const todayStr = startOfDay(new Date()).toISOString();
 
-        transactionsSnapshot.forEach((doc) => {
-          const data = doc.data();
-          totalRevenue += data.amount || 0;
-          if (data.date >= todayStr) {
-            const pathSegments = doc.ref.path.split('/');
-            const uid = pathSegments[1];
-            if (uid) activeUsersTodaySet.add(uid);
-          }
-        });
+      transactionsSnapshot.forEach((doc) => {
+        const data = doc.data();
+        totalRevenue += data.amount || 0;
+        if (data.date >= todayStr) {
+          const pathSegments = doc.ref.path.split('/');
+          const uid = pathSegments[1];
+          if (uid) activeUsersTodaySet.add(uid);
+        }
+      });
 
-        setStats({
-          totalUsers,
-          activeUsersToday: activeUsersTodaySet.size,
-          totalRevenue,
-          totalOrders,
-        });
-      } catch (err: any) {
-        console.error('Admin Dashboard Fetch Error:', err);
-        setError(err.message || 'Failed to load dashboard data.');
-      } finally {
-        setIsLoading(false);
-      }
+      setStats({
+        totalUsers,
+        activeUsersToday: activeUsersTodaySet.size,
+        totalRevenue,
+        totalOrders,
+      });
+    } catch (err: any) {
+      console.error('Admin Dashboard Fetch Error:', err);
+      setError(err.message || 'Failed to load dashboard data.');
+    } finally {
+      setIsLoading(false);
     }
+  }, [firestore]);
 
+  useEffect(() => {
     fetchStats();
-  }, [firestore, retryCount]);
+  }, [fetchStats, retryCount]);
 
   if (isLoading) {
     return (
@@ -120,11 +120,11 @@ export default function AdminDashboardPage() {
           </code>
           
           <div className="space-y-2">
-            <p className="text-sm font-bold">Recommended Troubleshooting:</p>
+            <p className="text-sm font-bold">Troubleshooting:</p>
             <ul className="list-disc list-inside text-sm space-y-1 text-muted-foreground">
-              <li>Confirm your Firestore document at <code>users/[YOUR_UID]</code> has <code>isAdmin: true</code> (Boolean type).</li>
-              <li>Sign out and sign back in to refresh your security token.</li>
-              <li>Wait 30 seconds for security rules to propagate after a change.</li>
+              <li>Ensure you have signed out and signed back in since making yourself an admin.</li>
+              <li>Wait 30 seconds for security rules to propagate across Google's servers.</li>
+              <li>Verify in Firestore that your document ID matches your current Auth UID.</li>
             </ul>
           </div>
         </div>
