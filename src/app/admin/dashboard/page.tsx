@@ -122,9 +122,9 @@ export default function AdminDashboardPage() {
           <div className="space-y-2">
             <p className="text-sm font-bold">Troubleshooting:</p>
             <ul className="list-disc list-inside text-sm space-y-1 text-muted-foreground">
-              <li>Ensure you have signed out and signed back in since making yourself an admin.</li>
-              <li>Wait 30 seconds for security rules to propagate across Google's servers.</li>
-              <li>Verify in Firestore that your document ID matches your current Auth UID.</li>
+              <li>Ensure your document ID in the <code>users</code> collection matches your UID exactly.</li>
+              <li>Ensure the <code>isAdmin</code> field is a <strong>Boolean</strong> and set to <code>true</code>.</li>
+              <li>Sign out and back in to refresh your session.</li>
             </ul>
           </div>
         </div>

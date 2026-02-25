@@ -10,7 +10,7 @@ service cloud.firestore {
     }
 
     // This helper reads the user's admin status.
-    // We use get() to look up the user's own document.
+    // Base Case: We check the current user's document for isAdmin == true.
     function isAdmin() {
       return signedIn() && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
@@ -19,24 +19,25 @@ service cloud.firestore {
     // Rules for the 'users' collection
     match /users/{userId} {
       
-      // GET: Allow users to read their OWN document using a simple UID check.
-      // This is the CRITICAL "base case" that allows isAdmin() to work without recursion.
+      // CRITICAL: Allow users to read (get) their OWN document WITHOUT calling isAdmin().
+      // This is the "base case" that prevents recursive loops in security rules.
       allow get: if signedIn() && request.auth.uid == userId;
 
-      // LIST & GET: Allow admins to read or list ANY user document.
-      // The 'list' permission is what the Admin Dashboard needs.
+      // Admins can read (get) any user's document.
+      // Admins can list the entire collection.
+      // We combine them into 'read' for clarity, but the 'get' above handles the owner case first.
       allow list, get: if isAdmin();
 
-      // CREATE: A user can create their own document.
+      // Users can create their own profile.
       allow create: if signedIn() && request.auth.uid == userId;
 
-      // UPDATE: A user can update their own doc (but not the isAdmin field).
-      // Admins can update any user's doc.
+      // Users can update their own profile (preventing isAdmin change).
+      // Admins can update any profile.
       allow update: if (signedIn() && request.auth.uid == userId && 
                        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin']))) || 
                     isAdmin();
 
-      // DELETE: Only admins can delete user documents.
+      // Only admins can delete.
       allow delete: if isAdmin();
 
       // Rules for user transactions (subcollection)
