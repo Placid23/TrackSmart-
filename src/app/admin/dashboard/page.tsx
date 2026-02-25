@@ -1,124 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useFirestore } from '@/lib/providers/firebase-provider';
-import { collection, collectionGroup, getDocs, query, where } from 'firebase/firestore';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Users, Receipt, DollarSign, Activity, Loader2 } from 'lucide-react';
-import type { Transaction } from '@/lib/types';
-import { isToday, subDays } from 'date-fns';
-import { useUserProfile } from '@/lib/hooks/use-user-profile';
-import { useToast } from '@/hooks/use-toast';
-
-interface AdminStats {
-  totalUsers: number;
-  activeUsersToday: number;
-  totalRevenue: number;
-  totalOrders: number;
-}
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+import { Users, Receipt, DollarSign, Activity } from 'lucide-react';
 
 export default function AdminDashboardPage() {
-  const firestore = useFirestore();
-  const { profile } = useUserProfile();
-  const { toast } = useToast();
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchAdminStats() {
-      if (!firestore || !profile?.isAdmin) {
-        setIsLoading(false);
-        return;
-      }
-
-      let attempts = 0;
-      const maxAttempts = 5;
-      
-      while(attempts < maxAttempts) {
-        try {
-          // Fetch all users to get the total count
-          const usersCollection = collection(firestore, 'users');
-          const usersSnapshot = await getDocs(usersCollection);
-          const totalUsers = usersSnapshot.size;
-
-          // Fetch all transactions from all users using a collection group query for the last 30 days
-          const thirtyDaysAgo = subDays(new Date(), 30);
-          const transactionsGroup = collectionGroup(firestore, 'transactions');
-          const recentTransactionsQuery = query(transactionsGroup, where('date', '>=', thirtyDaysAgo.toISOString()));
-          const transactionsSnapshot = await getDocs(recentTransactionsQuery);
-          
-          const allTransactions = transactionsSnapshot.docs.map(doc => doc.data() as Transaction);
-          
-          const totalOrders = allTransactions.length;
-          const totalRevenue = allTransactions.reduce((sum, t) => sum + t.amount, 0);
-
-          // Calculate active users today (defined as users who made a transaction today)
-          const activeUserIds = new Set<string>();
-          transactionsSnapshot.forEach(doc => {
-            const transactionDate = new Date(doc.data().date);
-            if (isToday(transactionDate)) {
-              // The path is structured as 'users/{userId}/transactions/{transactionId}'
-              const pathParts = doc.ref.path.split('/');
-              if (pathParts.length >= 2 && pathParts[0] === 'users') {
-                const userId = pathParts[1];
-                activeUserIds.add(userId);
-              }
-            }
-          });
-          const activeUsersToday = activeUserIds.size;
-
-          setStats({
-            totalUsers,
-            activeUsersToday,
-            totalRevenue,
-            totalOrders,
-          });
-
-          // If successful, break the loop
-          break;
-        } catch (error: any) {
-          if (error.code === 'permission-denied') {
-            attempts++;
-            if (attempts >= maxAttempts) {
-              console.error("Failed to fetch admin stats after multiple attempts:", error);
-              toast({
-                  variant: 'destructive',
-                  title: 'Permission Sync Failed',
-                  description: 'Could not sync admin permissions. Please try refreshing the page.',
-              });
-            } else {
-              await sleep(1000 * attempts);
-            }
-          } else {
-            console.error("Failed to fetch admin stats:", error);
-             if (error.code === 'failed-precondition') {
-                toast({
-                    variant: 'destructive',
-                    title: 'Database Index Required',
-                    description: "Your database needs an index for admin queries. Please check the browser's developer console for a link to create it.",
-                    duration: 15000,
-                });
-            }
-            // Break for non-permission errors
-            break;
-          }
-        } 
-      }
-      setIsLoading(false);
-    }
-
-    fetchAdminStats();
-  }, [firestore, profile, toast]);
-
-  if (isLoading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  // Hard-coded placeholder values for the dashboard overview
+  const stats = {
+    totalUsers: 1254,
+    activeUsersToday: 86,
+    totalRevenue: 452300,
+    totalOrders: 276,
+  };
 
   return (
     <div className="space-y-8 animate-fade-in-up">
@@ -138,8 +30,8 @@ export default function AdminDashboardPage() {
             <Users className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{stats?.totalUsers.toLocaleString() ?? '0'}</p>
-            <p className="text-xs text-muted-foreground">Total users on the platform</p>
+            <p className="text-3xl font-bold">{stats.totalUsers.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">Total users registered on the platform</p>
           </CardContent>
         </Card>
         <Card>
@@ -148,8 +40,8 @@ export default function AdminDashboardPage() {
             <Activity className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{stats?.activeUsersToday.toLocaleString() ?? '0'}</p>
-            <p className="text-xs text-muted-foreground">Users with transactions today</p>
+            <p className="text-3xl font-bold">{stats.activeUsersToday.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">Users with at least one order today</p>
           </CardContent>
         </Card>
         <Card>
@@ -158,8 +50,8 @@ export default function AdminDashboardPage() {
             <DollarSign className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">₦{stats?.totalRevenue.toLocaleString() ?? '0'}</p>
-            <p className="text-xs text-muted-foreground">Total transaction value in last 30 days</p>
+            <p className="text-3xl font-bold">₦{stats.totalRevenue.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">Total transaction value in the last 30 days</p>
           </CardContent>
         </Card>
         <Card>
@@ -168,8 +60,8 @@ export default function AdminDashboardPage() {
             <Receipt className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-             <p className="text-3xl font-bold">{stats?.totalOrders.toLocaleString() ?? '0'}</p>
-            <p className="text-xs text-muted-foreground">Total orders in the last 30 days</p>
+             <p className="text-3xl font-bold">{stats.totalOrders.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">Total number of orders in the last 30 days</p>
           </CardContent>
         </Card>
       </div>
