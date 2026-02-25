@@ -14,7 +14,7 @@ service cloud.firestore {
     }
 
     // isAdmin function checks the user's document for the 'isAdmin' flag.
-    // This is the single source of truth for admin status.
+    // We ensure the user can read their own document to verify this.
     function isAdmin() {
       return signedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
@@ -28,8 +28,8 @@ service cloud.firestore {
       // CREATE: A user can create their own document.
       allow create: if isOwner(userId);
 
-      // UPDATE: A user can update their own doc (but not isAdmin field).
-      // An admin can update any user's doc (including isAdmin).
+      // UPDATE: A user can update their own doc (but not the isAdmin field).
+      // An admin can update any user's doc (including the isAdmin field).
       allow update: if (isOwner(userId) && request.resource.data.isAdmin == resource.data.isAdmin) || isAdmin();
 
       // DELETE: Only admins can delete user documents.
@@ -38,13 +38,14 @@ service cloud.firestore {
 
     // Rules for user transactions (subcollection)
     match /users/{userId}/transactions/{transactionId} {
-      // A user can read/write their own transactions. Admins can also read/write any transaction.
+      // A user can read/write their own transactions. 
+      // Admins can also read/write any transaction directly within the subcollection.
       allow read, write: if isOwner(userId) || isAdmin();
     }
 
     // Rule for the 'transactions' collection group query used by the admin dashboard.
     match /{path=**}/transactions/{transactionId} {
-      // Admin can read any transaction from any user.
+      // Admin can read any transaction from any user via collection group queries.
       allow read: if isAdmin();
     }
   }
