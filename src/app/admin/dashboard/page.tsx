@@ -3,10 +3,13 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Users, Receipt, DollarSign, Activity, Loader2 } from 'lucide-react';
-import { collection, collectionGroup, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { Users, Receipt, DollarSign, Activity, Loader2, AlertCircle } from 'lucide-react';
+import { collection, collectionGroup, getDocs, query, where } from 'firebase/firestore';
 import { useFirestore } from '@/lib/providers/firebase-provider';
-import { startOfDay, startOfMonth } from 'date-fns';
+import { startOfMonth, startOfDay } from 'date-fns';
+import { errorEmitter } from '@/lib/error-emitter';
+import { FirestorePermissionError } from '@/lib/errors';
+import { Button } from '@/components/ui/button';
 
 interface DashboardStats {
   totalUsers: number;
@@ -20,6 +23,7 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     async function fetchStats() {
@@ -28,16 +32,35 @@ export default function AdminDashboardPage() {
         setError(null);
 
         // 1. Total Users
-        const usersSnapshot = await getDocs(collection(firestore, 'users'));
+        const usersRef = collection(firestore, 'users');
+        const usersSnapshot = await getDocs(usersRef).catch(err => {
+          if (err.code === 'permission-denied') {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+              path: usersRef.path,
+              operation: 'list'
+            }));
+          }
+          throw err;
+        });
         const totalUsers = usersSnapshot.size;
 
-        // 2. Transactions for the last 30 days
-        const thirtyDaysAgo = startOfMonth(new Date()); // Simplified to start of month for consistent reporting
+        // 2. Transactions (Last 30 Days)
+        const thirtyDaysAgo = startOfMonth(new Date());
+        const transactionsRef = collectionGroup(firestore, 'transactions');
         const transactionsQuery = query(
-          collectionGroup(firestore, 'transactions'),
+          transactionsRef,
           where('date', '>=', thirtyDaysAgo.toISOString())
         );
-        const transactionsSnapshot = await getDocs(transactionsQuery);
+        
+        const transactionsSnapshot = await getDocs(transactionsQuery).catch(err => {
+          if (err.code === 'permission-denied') {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+              path: 'collectionGroup(transactions)',
+              operation: 'list'
+            }));
+          }
+          throw err;
+        });
 
         let totalRevenue = 0;
         let totalOrders = transactionsSnapshot.size;
@@ -47,11 +70,7 @@ export default function AdminDashboardPage() {
         transactionsSnapshot.forEach((doc) => {
           const data = doc.data();
           totalRevenue += data.amount || 0;
-          
-          // Check if it was today
           if (data.date >= todayStr) {
-            // In a real app, the path would be /users/{uid}/transactions/{tid}
-            // We can extract the UID from the path
             const pathSegments = doc.ref.path.split('/');
             const uid = pathSegments[1];
             if (uid) activeUsersTodaySet.add(uid);
@@ -65,15 +84,15 @@ export default function AdminDashboardPage() {
           totalOrders,
         });
       } catch (err: any) {
-        console.error('Error fetching admin stats:', err);
-        setError(err.message || 'Failed to load dashboard data. Please ensure you have admin permissions.');
+        console.error('Admin Dashboard Fetch Error:', err);
+        setError(err.message || 'Failed to load dashboard data.');
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchStats();
-  }, [firestore]);
+  }, [firestore, retryCount]);
 
   if (isLoading) {
     return (
@@ -85,12 +104,23 @@ export default function AdminDashboardPage() {
 
   if (error) {
     return (
-      <div className="p-4 rounded-lg bg-destructive/10 text-destructive border border-destructive/20">
-        <h2 className="text-lg font-bold mb-2">Error</h2>
-        <p>{error}</p>
-        <p className="mt-4 text-sm opacity-80">
-          Tip: Ensure your user document in Firestore has <code>isAdmin: true</code> (Boolean) and you have signed out and back in.
-        </p>
+      <div className="p-6 rounded-xl bg-destructive/5 border border-destructive/20 max-w-2xl mx-auto mt-8">
+        <div className="flex items-center gap-3 text-destructive mb-4">
+          <AlertCircle className="h-6 w-6" />
+          <h2 className="text-xl font-bold">Access Denied or Connection Error</h2>
+        </div>
+        <p className="text-muted-foreground mb-4">{error}</p>
+        <div className="bg-background/50 p-4 rounded-lg border text-sm space-y-2 mb-6">
+          <p><strong>Troubleshooting Steps:</strong></p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Verify your document at <code>users/[YOUR_UID]</code> has <code>isAdmin: true</code> (Boolean type).</li>
+            <li>Sign out and sign back in to refresh your authentication token.</li>
+            <li>Ensure you have a stable internet connection.</li>
+          </ul>
+        </div>
+        <Button onClick={() => setRetryCount(prev => prev + 1)} variant="outline">
+          Retry Connection
+        </Button>
       </div>
     );
   }

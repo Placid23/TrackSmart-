@@ -7,6 +7,7 @@ import { FirebaseProvider } from '@/lib/providers/firebase-provider';
 import { UserProvider } from '@/lib/hooks/use-user';
 import { AppGuard } from '@/components/layout/app-guard';
 import { UserProfileProvider } from '@/lib/providers/user-profile-provider';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 export const metadata: Metadata = {
   title: 'TrackSmart+',
@@ -47,7 +48,10 @@ export default function RootLayout({
           <FirebaseProvider>
             <UserProvider>
               <UserProfileProvider>
-                <AppGuard>{children}</AppGuard>
+                <AppGuard>
+                  <FirebaseErrorListener />
+                  {children}
+                </AppGuard>
                 <Toaster />
               </UserProfileProvider>
             </UserProvider>
