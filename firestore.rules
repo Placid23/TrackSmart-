@@ -9,13 +9,9 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Unconditionally allow a user to read their own profile document.
-    // This is critical so that the isAdmin() check doesn't fail when 
-    // evaluating permissions for other collections.
-    match /users/{userId} {
-      allow get: if signedIn() && request.auth.uid == userId;
-    }
-
+    // This helper reads the user's admin status.
+    // It is critical that the document read here can be authorized
+    // by a rule that DOES NOT call isAdmin() to avoid recursion.
     function isAdmin() {
       return signedIn() && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
@@ -27,24 +23,30 @@ service cloud.firestore {
 
     // Rules for the 'users' collection
     match /users/{userId} {
-      // READ: Users can get their own doc. Admins can read any doc and list all docs.
-      allow read: if isOwner(userId) || isAdmin();
+      
+      // GET: Allow users to read their own document (allows isAdmin() to work)
+      // OR allow admins to read any document.
+      allow get: if signedIn() && (isOwner(userId) || isAdmin());
+
+      // LIST: Only admins can list the entire users collection.
+      // This is the specific permission required for the Admin Dashboard.
+      allow list: if isAdmin();
 
       // CREATE: A user can create their own document.
-      allow create: if isOwner(userId);
+      allow create: if signedIn() && isOwner(userId);
 
       // UPDATE: A user can update their own doc (but not the isAdmin field).
       // Admins can update any user's doc.
-      allow update: if (isOwner(userId) && request.resource.data.isAdmin == resource.data.isAdmin) || isAdmin();
+      allow update: if (signedIn() && isOwner(userId) && request.resource.data.isAdmin == resource.data.isAdmin) || isAdmin();
 
       // DELETE: Only admins can delete user documents.
       allow delete: if isAdmin();
 
       // Rules for user transactions (subcollection)
       match /transactions/{transactionId} {
-        // A user can read/write their own transactions. 
-        // Admins can also read/write any transaction.
-        allow read, write: if isOwner(userId) || isAdmin();
+        // Owner can read/write their own transactions. 
+        // Admin can also read/write any user's transactions.
+        allow read, write: if signedIn() && (isOwner(userId) || isAdmin());
       }
     }
 

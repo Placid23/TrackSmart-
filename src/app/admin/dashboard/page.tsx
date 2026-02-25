@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Users, Receipt, DollarSign, Activity, Loader2, AlertCircle } from 'lucide-react';
+import { Users, Receipt, DollarSign, Activity, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { collection, collectionGroup, getDocs, query, where } from 'firebase/firestore';
 import { useFirestore } from '@/lib/providers/firebase-provider';
 import { startOfMonth, startOfDay } from 'date-fns';
@@ -35,10 +35,12 @@ export default function AdminDashboardPage() {
         const usersRef = collection(firestore, 'users');
         const usersSnapshot = await getDocs(usersRef).catch(err => {
           if (err.code === 'permission-denied') {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
+            const permError = new FirestorePermissionError({
               path: usersRef.path,
               operation: 'list'
-            }));
+            });
+            errorEmitter.emit('permission-error', permError);
+            throw permError;
           }
           throw err;
         });
@@ -54,10 +56,12 @@ export default function AdminDashboardPage() {
         
         const transactionsSnapshot = await getDocs(transactionsQuery).catch(err => {
           if (err.code === 'permission-denied') {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
+            const permError = new FirestorePermissionError({
               path: 'collectionGroup(transactions)',
               operation: 'list'
-            }));
+            });
+            errorEmitter.emit('permission-error', permError);
+            throw permError;
           }
           throw err;
         });
@@ -104,21 +108,28 @@ export default function AdminDashboardPage() {
 
   if (error) {
     return (
-      <div className="p-6 rounded-xl bg-destructive/5 border border-destructive/20 max-w-2xl mx-auto mt-8">
+      <div className="p-6 rounded-xl bg-destructive/5 border border-destructive/20 max-w-2xl mx-auto mt-8 animate-fade-in">
         <div className="flex items-center gap-3 text-destructive mb-4">
           <AlertCircle className="h-6 w-6" />
-          <h2 className="text-xl font-bold">Access Denied or Connection Error</h2>
+          <h2 className="text-xl font-bold">Access Denied</h2>
         </div>
-        <p className="text-muted-foreground mb-4">{error}</p>
-        <div className="bg-background/50 p-4 rounded-lg border text-sm space-y-2 mb-6">
-          <p><strong>Troubleshooting Steps:</strong></p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>Verify your document at <code>users/[YOUR_UID]</code> has <code>isAdmin: true</code> (Boolean type).</li>
-            <li>Sign out and sign back in to refresh your authentication token.</li>
-            <li>Ensure you have a stable internet connection.</li>
-          </ul>
+        <div className="bg-background/80 p-5 rounded-lg border shadow-sm space-y-4 mb-6">
+          <p className="text-sm font-medium">Detailed Error:</p>
+          <code className="block p-3 bg-muted rounded text-xs overflow-x-auto whitespace-pre-wrap">
+            {error}
+          </code>
+          
+          <div className="space-y-2">
+            <p className="text-sm font-bold">Recommended Troubleshooting:</p>
+            <ul className="list-disc list-inside text-sm space-y-1 text-muted-foreground">
+              <li>Confirm your Firestore document at <code>users/[YOUR_UID]</code> has <code>isAdmin: true</code> (Boolean).</li>
+              <li>Sign out and sign back in to refresh your security token.</li>
+              <li>Wait 30 seconds for security rules to propagate after a change.</li>
+            </ul>
+          </div>
         </div>
-        <Button onClick={() => setRetryCount(prev => prev + 1)} variant="outline">
+        <Button onClick={() => setRetryCount(prev => prev + 1)} variant="default" className="w-full sm:w-auto">
+          <RefreshCw className="mr-2 h-4 w-4" />
           Retry Connection
         </Button>
       </div>
@@ -132,7 +143,7 @@ export default function AdminDashboardPage() {
           Dashboard Overview
         </h1>
         <p className="text-muted-foreground">
-          Real-time summary of activity on TrackSmart+ (Last 30 days).
+          Real-time summary of activity on TrackSmart+ (Current Month).
         </p>
       </div>
 
