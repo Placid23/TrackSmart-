@@ -34,7 +34,7 @@ export default function AdminDashboardPage() {
         // 1. Total Users
         const usersRef = collection(firestore, 'users');
         const usersSnapshot = await getDocs(usersRef).catch(err => {
-          if (err.code === 'permission-denied') {
+          if (err.code === 'permission-denied' || err.message?.includes('permissions')) {
             const permError = new FirestorePermissionError({
               path: usersRef.path,
               operation: 'list'
@@ -55,7 +55,7 @@ export default function AdminDashboardPage() {
         );
         
         const transactionsSnapshot = await getDocs(transactionsQuery).catch(err => {
-          if (err.code === 'permission-denied') {
+          if (err.code === 'permission-denied' || err.message?.includes('permissions')) {
             const permError = new FirestorePermissionError({
               path: 'collectionGroup(transactions)',
               operation: 'list'
@@ -122,7 +122,7 @@ export default function AdminDashboardPage() {
           <div className="space-y-2">
             <p className="text-sm font-bold">Recommended Troubleshooting:</p>
             <ul className="list-disc list-inside text-sm space-y-1 text-muted-foreground">
-              <li>Confirm your Firestore document at <code>users/[YOUR_UID]</code> has <code>isAdmin: true</code> (Boolean).</li>
+              <li>Confirm your Firestore document at <code>users/[YOUR_UID]</code> has <code>isAdmin: true</code> (Boolean type).</li>
               <li>Sign out and sign back in to refresh your security token.</li>
               <li>Wait 30 seconds for security rules to propagate after a change.</li>
             </ul>

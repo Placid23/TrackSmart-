@@ -17,27 +17,27 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    function isOwner(userId) {
-      return signedIn() && request.auth.uid == userId;
-    }
-
     // Rules for the 'users' collection
     match /users/{userId} {
       
-      // GET: Allow users to read their own document (allows isAdmin() to work)
-      // OR allow admins to read any document.
-      allow get: if signedIn() && (isOwner(userId) || isAdmin());
+      // GET: Rule 1 - Allow users to read their OWN document.
+      // This MUST NOT call isAdmin() to avoid circular dependencies.
+      allow get: if signedIn() && request.auth.uid == userId;
+
+      // GET: Rule 2 - Allow admins to read ANY user document.
+      // This calls isAdmin(), which in turn calls Rule 1 for the admin's own doc.
+      allow get: if isAdmin();
 
       // LIST: Only admins can list the entire users collection.
       // This is the specific permission required for the Admin Dashboard.
       allow list: if isAdmin();
 
       // CREATE: A user can create their own document.
-      allow create: if signedIn() && isOwner(userId);
+      allow create: if signedIn() && request.auth.uid == userId;
 
       // UPDATE: A user can update their own doc (but not the isAdmin field).
       // Admins can update any user's doc.
-      allow update: if (signedIn() && isOwner(userId) && request.resource.data.isAdmin == resource.data.isAdmin) || isAdmin();
+      allow update: if (signedIn() && request.auth.uid == userId && request.resource.data.isAdmin == resource.data.isAdmin) || isAdmin();
 
       // DELETE: Only admins can delete user documents.
       allow delete: if isAdmin();
@@ -46,7 +46,7 @@ service cloud.firestore {
       match /transactions/{transactionId} {
         // Owner can read/write their own transactions. 
         // Admin can also read/write any user's transactions.
-        allow read, write: if signedIn() && (isOwner(userId) || isAdmin());
+        allow read, write: if signedIn() && (request.auth.uid == userId || isAdmin());
       }
     }
 
