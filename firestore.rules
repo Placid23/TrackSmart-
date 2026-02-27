@@ -9,8 +9,13 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // This helper reads the user's admin status.
-    // Base Case: We check the current user's document for isAdmin == true.
+    // BREAKING RECURSION: 
+    // This allows the isAdmin() function to fetch the user document
+    // via a simple ownership check, avoiding a circular dependency.
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
     function isAdmin() {
       return signedIn() && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
@@ -19,32 +24,29 @@ service cloud.firestore {
     // Rules for the 'users' collection
     match /users/{userId} {
       
-      // CRITICAL: Allow users to read (get) their OWN document WITHOUT calling isAdmin().
-      // This is the "base case" that prevents recursive loops in security rules.
-      allow get: if signedIn() && request.auth.uid == userId;
+      // BASE CASE: Allow users to read (get) their OWN document directly.
+      // This is crucial for the isAdmin() function to work without recursion.
+      allow get: if isOwner(userId);
 
-      // Admins can read (get) any user's document.
-      // Admins can list the entire collection.
-      // We combine them into 'read' for clarity, but the 'get' above handles the owner case first.
+      // Admins can list all users and get any specific user document.
       allow list, get: if isAdmin();
 
-      // Users can create their own profile.
-      allow create: if signedIn() && request.auth.uid == userId;
+      // Users can create their own profile initially.
+      allow create: if isOwner(userId);
 
-      // Users can update their own profile (preventing isAdmin change).
-      // Admins can update any profile.
-      allow update: if (signedIn() && request.auth.uid == userId && 
-                       (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin']))) || 
+      // Users can update their own profile, but NOT the 'isAdmin' field.
+      // Admins can update any profile (e.g., to promote someone).
+      allow update: if (isOwner(userId) && request.resource.data.isAdmin == resource.data.isAdmin) || 
                     isAdmin();
 
-      // Only admins can delete.
+      // Only admins can delete user records.
       allow delete: if isAdmin();
 
-      // Rules for user transactions (subcollection)
+      // Rules for user transactions subcollection
       match /transactions/{transactionId} {
         // Owner can read/write their own transactions. 
-        // Admin can also read/write any user's transactions.
-        allow read, write: if signedIn() && (request.auth.uid == userId || isAdmin());
+        // Admin can also access any user's transactions directly.
+        allow read, write: if isOwner(userId) || isAdmin();
       }
     }
 
