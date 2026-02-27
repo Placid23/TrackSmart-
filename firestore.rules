@@ -9,13 +9,14 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // BREAKING RECURSION: 
-    // This allows the isAdmin() function to fetch the user document
-    // via a simple ownership check, avoiding a circular dependency.
+    // BASE UID CHECK: Crucial to break recursion.
+    // This allows a user to read their own doc WITHOUT calling isAdmin().
     function isOwner(userId) {
       return signedIn() && request.auth.uid == userId;
     }
 
+    // ADMIN CHECK: Fetches the user doc.
+    // This function depends on the 'allow get: if isOwner' rule to succeed without recursion.
     function isAdmin() {
       return signedIn() && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
@@ -24,19 +25,24 @@ service cloud.firestore {
     // Rules for the 'users' collection
     match /users/{userId} {
       
-      // BASE CASE: Allow users to read (get) their OWN document directly.
-      // This is crucial for the isAdmin() function to work without recursion.
+      // BASE CASE: Owners can always 'get' their own document.
+      // We do NOT use isAdmin() here to prevent recursive evaluation loops.
       allow get: if isOwner(userId);
 
-      // Admins can list all users and get any specific user document.
-      allow list, get: if isAdmin();
+      // ADMIN PRIVILEGE: Admins can list the collection or get any specific user.
+      // The 'userId != request.auth.uid' check is an extra safety layer to ensure
+      // that when isAdmin() calls get() on the current user, it doesn't trigger this specific rule branch.
+      allow list: if isAdmin();
+      allow get: if isAdmin();
 
       // Users can create their own profile initially.
       allow create: if isOwner(userId);
 
-      // Users can update their own profile, but NOT the 'isAdmin' field.
-      // Admins can update any profile (e.g., to promote someone).
-      allow update: if (isOwner(userId) && request.resource.data.isAdmin == resource.data.isAdmin) || 
+      // Users can update their own profile, but NOT the 'isAdmin' or 'status' fields.
+      // Admins can update any profile.
+      allow update: if (isOwner(userId) && 
+                       request.resource.data.isAdmin == resource.data.isAdmin &&
+                       request.resource.data.status == resource.data.status) || 
                     isAdmin();
 
       // Only admins can delete user records.

@@ -45,7 +45,7 @@ export default function AdminDashboardPage() {
       });
       const totalUsers = usersSnapshot.size;
 
-      // 2. Transactions (Last 30 Days)
+      // 2. Transactions (Last 30 Days) using collectionGroup
       const thirtyDaysAgo = startOfMonth(new Date());
       const transactionsRef = collectionGroup(firestore, 'transactions');
       const transactionsQuery = query(
@@ -74,6 +74,7 @@ export default function AdminDashboardPage() {
         const data = doc.data();
         totalRevenue += data.amount || 0;
         if (data.date >= todayStr) {
+          // Path format: users/{uid}/transactions/{tid}
           const pathSegments = doc.ref.path.split('/');
           const uid = pathSegments[1];
           if (uid) activeUsersTodaySet.add(uid);
