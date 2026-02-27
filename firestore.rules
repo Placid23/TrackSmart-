@@ -30,8 +30,6 @@ service cloud.firestore {
       allow get: if isOwner(userId);
 
       // ADMIN PRIVILEGE: Admins can list the collection or get any specific user.
-      // The 'userId != request.auth.uid' check is an extra safety layer to ensure
-      // that when isAdmin() calls get() on the current user, it doesn't trigger this specific rule branch.
       allow list: if isAdmin();
       allow get: if isAdmin();
 

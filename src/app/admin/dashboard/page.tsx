@@ -3,13 +3,14 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Users, Receipt, DollarSign, Activity, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Users, Receipt, DollarSign, Activity, Loader2, AlertCircle, RefreshCw, Info } from 'lucide-react';
 import { collection, collectionGroup, getDocs, query, where, limit } from 'firebase/firestore';
 import { useFirestore } from '@/lib/providers/firebase-provider';
 import { startOfMonth, startOfDay } from 'date-fns';
 import { errorEmitter } from '@/lib/error-emitter';
 import { FirestorePermissionError } from '@/lib/errors';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface DashboardStats {
   totalUsers: number;
@@ -23,12 +24,14 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isIndexMissing, setIsIndexMissing] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
   const fetchStats = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
+      setIsIndexMissing(false);
 
       // 1. Total Users (Limit to 500 for safety in MVP)
       const usersRef = collection(firestore, 'users');
@@ -54,6 +57,10 @@ export default function AdminDashboardPage() {
       );
       
       const transactionsSnapshot = await getDocs(transactionsQuery).catch(err => {
+        if (err.message?.toLowerCase().includes('index') || err.code === 'failed-precondition') {
+          setIsIndexMissing(true);
+          throw new Error('The required Firestore index is still building or missing.');
+        }
         if (err.code === 'permission-denied' || err.message?.includes('permissions')) {
           const permError = new FirestorePermissionError({
             path: 'collectionGroup(transactions)',
@@ -74,7 +81,6 @@ export default function AdminDashboardPage() {
         const data = doc.data();
         totalRevenue += data.amount || 0;
         if (data.date >= todayStr) {
-          // Path format: users/{uid}/transactions/{tid}
           const pathSegments = doc.ref.path.split('/');
           const uid = pathSegments[1];
           if (uid) activeUsersTodaySet.add(uid);
@@ -107,36 +113,6 @@ export default function AdminDashboardPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="p-6 rounded-xl bg-destructive/5 border border-destructive/20 max-w-2xl mx-auto mt-8 animate-fade-in">
-        <div className="flex items-center gap-3 text-destructive mb-4">
-          <AlertCircle className="h-6 w-6" />
-          <h2 className="text-xl font-bold">Access Denied</h2>
-        </div>
-        <div className="bg-background/80 p-5 rounded-lg border shadow-sm space-y-4 mb-6">
-          <p className="text-sm font-medium">Detailed Error:</p>
-          <code className="block p-3 bg-muted rounded text-xs overflow-x-auto whitespace-pre-wrap">
-            {error}
-          </code>
-          
-          <div className="space-y-2">
-            <p className="text-sm font-bold">Troubleshooting:</p>
-            <ul className="list-disc list-inside text-sm space-y-1 text-muted-foreground">
-              <li>Ensure your document ID in the <code>users</code> collection matches your UID exactly.</li>
-              <li>Ensure the <code>isAdmin</code> field is a <strong>Boolean</strong> and set to <code>true</code>.</li>
-              <li>Sign out and back in to refresh your session.</li>
-            </ul>
-          </div>
-        </div>
-        <Button onClick={() => setRetryCount(prev => prev + 1)} variant="default" className="w-full sm:w-auto">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Retry Connection
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8 animate-fade-in-up">
       <div className="space-y-2">
@@ -148,6 +124,44 @@ export default function AdminDashboardPage() {
         </p>
       </div>
 
+      {isIndexMissing && (
+        <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300">
+          <Info className="h-4 w-4" />
+          <AlertTitle>Index Creation Required</AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p>To see transaction data, you need to create a <strong>Manual</strong> index for the <strong>transactions</strong> collection group on the <strong>date</strong> field.</p>
+            <ol className="list-decimal list-inside text-sm">
+                <li>Go to the <strong>Manual</strong> tab in Firestore Indexes.</li>
+                <li>Click <strong>Create Index</strong>.</li>
+                <li>Collection ID: <code>transactions</code></li>
+                <li>Field: <code>date</code> (Ascending)</li>
+                <li>Query Scope: <strong>Collection group</strong></li>
+            </ol>
+            <Button size="sm" variant="outline" className="mt-2" onClick={() => setRetryCount(prev => prev + 1)}>
+                Refresh Dashboard
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {error && !isIndexMissing && (
+        <div className="p-6 rounded-xl bg-destructive/5 border border-destructive/20 max-w-2xl mx-auto animate-fade-in">
+          <div className="flex items-center gap-3 text-destructive mb-4">
+            <AlertCircle className="h-6 w-6" />
+            <h2 className="text-xl font-bold">Data Fetch Error</h2>
+          </div>
+          <div className="bg-background/80 p-5 rounded-lg border shadow-sm space-y-4 mb-6">
+            <code className="block p-3 bg-muted rounded text-xs overflow-x-auto whitespace-pre-wrap">
+              {error}
+            </code>
+          </div>
+          <Button onClick={() => setRetryCount(prev => prev + 1)} variant="default">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Retry Connection
+          </Button>
+        </div>
+      )}
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -155,7 +169,7 @@ export default function AdminDashboardPage() {
             <Users className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{stats?.totalUsers.toLocaleString()}</p>
+            <p className="text-3xl font-bold">{stats?.totalUsers.toLocaleString() ?? '...'}</p>
             <p className="text-xs text-muted-foreground">Across the entire platform</p>
           </CardContent>
         </Card>
@@ -165,7 +179,7 @@ export default function AdminDashboardPage() {
             <Activity className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{stats?.activeUsersToday.toLocaleString()}</p>
+            <p className="text-3xl font-bold">{stats?.activeUsersToday.toLocaleString() ?? '...'}</p>
             <p className="text-xs text-muted-foreground">Unique users with transactions today</p>
           </CardContent>
         </Card>
@@ -175,7 +189,7 @@ export default function AdminDashboardPage() {
             <DollarSign className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">₦{stats?.totalRevenue.toLocaleString()}</p>
+            <p className="text-3xl font-bold">₦{stats?.totalRevenue.toLocaleString() ?? '...'}</p>
             <p className="text-xs text-muted-foreground">Sum of all transactions this month</p>
           </CardContent>
         </Card>
@@ -185,7 +199,7 @@ export default function AdminDashboardPage() {
             <Receipt className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-             <p className="text-3xl font-bold">{stats?.totalOrders.toLocaleString()}</p>
+             <p className="text-3xl font-bold">{stats?.totalOrders.toLocaleString() ?? '...'}</p>
             <p className="text-xs text-muted-foreground">Number of orders processed this month</p>
           </CardContent>
         </Card>
