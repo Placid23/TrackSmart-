@@ -33,7 +33,7 @@ export default function AdminDashboardPage() {
       setError(null);
       setIsIndexMissing(false);
 
-      // 1. Total Users (Limit to 500 for safety in MVP)
+      // 1. Total Users
       const usersRef = collection(firestore, 'users');
       const usersSnapshot = await getDocs(query(usersRef, limit(500))).catch(err => {
         if (err.code === 'permission-denied' || err.message?.includes('permissions')) {
@@ -57,9 +57,10 @@ export default function AdminDashboardPage() {
       );
       
       const transactionsSnapshot = await getDocs(transactionsQuery).catch(err => {
+        // Handle Missing Index Error
         if (err.message?.toLowerCase().includes('index') || err.code === 'failed-precondition') {
           setIsIndexMissing(true);
-          throw new Error('The required Firestore index is still building or missing.');
+          throw new Error('Firestore index required for Collection Group.');
         }
         if (err.code === 'permission-denied' || err.message?.includes('permissions')) {
           const permError = new FirestorePermissionError({
@@ -127,17 +128,23 @@ export default function AdminDashboardPage() {
       {isIndexMissing && (
         <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300">
           <Info className="h-4 w-4" />
-          <AlertTitle>Index Creation Required</AlertTitle>
-          <AlertDescription className="space-y-2">
-            <p>To see transaction data, you need to create a <strong>Manual</strong> index for the <strong>transactions</strong> collection group on the <strong>date</strong> field.</p>
-            <ol className="list-decimal list-inside text-sm">
-                <li>Go to the <strong>Manual</strong> tab in Firestore Indexes.</li>
-                <li>Click <strong>Create Index</strong>.</li>
-                <li>Collection ID: <code>transactions</code></li>
-                <li>Field: <code>date</code> (Ascending)</li>
-                <li>Query Scope: <strong>Collection group</strong></li>
-            </ol>
-            <Button size="sm" variant="outline" className="mt-2" onClick={() => setRetryCount(prev => prev + 1)}>
+          <AlertTitle>Single Field Index Configuration Required</AlertTitle>
+          <AlertDescription className="space-y-4">
+            <p>Firestore requires you to enable <strong>Collection Group</strong> scope for the <code>date</code> field in your transactions.</p>
+            <div className="bg-background/50 p-4 rounded-md border text-sm space-y-2">
+                <p><strong>Steps to fix:</strong></p>
+                <ol className="list-decimal list-inside space-y-1">
+                    <li>Go to the <strong>Indexes</strong> section in your Firebase Console.</li>
+                    <li>Click the <strong>Single Field</strong> tab.</li>
+                    <li>Click <strong>Add Exemption</strong>.</li>
+                    <li>Collection ID: <code>transactions</code></li>
+                    <li>Field Path: <code>date</code></li>
+                    <li>Under <strong>Query Scopes</strong>, enable <strong>Collection Group</strong>.</li>
+                    <li>Click <strong>Save</strong> and wait a few minutes.</li>
+                </ol>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => setRetryCount(prev => prev + 1)}>
+                <RefreshCw className="mr-2 h-4 w-4" />
                 Refresh Dashboard
             </Button>
           </AlertDescription>
