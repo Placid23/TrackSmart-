@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -128,19 +127,19 @@ export default function AdminDashboardPage() {
       {isIndexMissing && (
         <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300">
           <Info className="h-4 w-4" />
-          <AlertTitle>Single Field Index Configuration Required</AlertTitle>
+          <AlertTitle>Firestore Index Required</AlertTitle>
           <AlertDescription className="space-y-4">
             <p>Firestore requires you to enable <strong>Collection Group</strong> scope for the <code>date</code> field in your transactions.</p>
             <div className="bg-background/50 p-4 rounded-md border text-sm space-y-2">
-                <p><strong>Steps to fix:</strong></p>
+                <p><strong>Steps to fix in Firebase Console:</strong></p>
                 <ol className="list-decimal list-inside space-y-1">
-                    <li>Go to the <strong>Indexes</strong> section in your Firebase Console.</li>
-                    <li>Click the <strong>Single Field</strong> tab.</li>
+                    <li>Close any "Create a composite index" popups.</li>
+                    <li>Click the <strong>Automatic</strong> tab at the top right (next to "Manual").</li>
                     <li>Click <strong>Add Exemption</strong>.</li>
                     <li>Collection ID: <code>transactions</code></li>
                     <li>Field Path: <code>date</code></li>
                     <li>Under <strong>Query Scopes</strong>, enable <strong>Collection Group</strong>.</li>
-                    <li>Click <strong>Save</strong> and wait a few minutes.</li>
+                    <li>Click <strong>Save</strong> and wait a few minutes for it to build.</li>
                 </ol>
             </div>
             <Button size="sm" variant="outline" onClick={() => setRetryCount(prev => prev + 1)}>
